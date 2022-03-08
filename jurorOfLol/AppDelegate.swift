@@ -1,19 +1,21 @@
-//
-//  AppDelegate.swift
-//  jurorOfLol
-//
-//  Created by 찬슬조 on 2022/03/01.
-//
+
 
 import UIKit
+import Firebase
+import RxRelay
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
-
+    
+    var window : UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        FirebaseApp.configure()
+        if let user = Auth.auth().currentUser {
+            //print("You're sign in as \(user.uid), email: \(user.email)")
+            LoginViewModel.shared.isLogin.accept(true)
+        }
         return true
     }
 
