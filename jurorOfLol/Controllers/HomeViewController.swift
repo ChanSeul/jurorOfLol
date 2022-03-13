@@ -18,6 +18,7 @@ class HomeViewController: UIViewController {
     
     init(viewModel: HomeViewModelType = HomeViewModel()) {
         self.viewModel = viewModel
+        //LoginController.shared.delegate = self
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -91,12 +92,25 @@ class HomeViewController: UIViewController {
         viewModel.allPosts
             .bind(to: timeLineTableView.rx.items(cellIdentifier: HomeTableViewCell.identifier,
                                                  cellType: HomeTableViewCell.self)) { [weak self]
-                 _, item, cell in
+                row, item, cell in
                 guard let self = self else { return }
+                cell.bind()
                 cell.data.accept(item)
                 cell.delegate = self
+                cell.tag = row
+
             }
             .disposed(by: disposeBag)
+        
+//        viewModel.allPosts
+//            .asDriver() { _ in .never()}
+//            .drive(onNext: { post in
+//
+//                timeLineTableView.rx.items(cellIdentifier: HomeTableViewCell.identifier, cellType: HomeTableViewCell.self) { [weak self]
+//                    row, item, cell in
+//
+//                }
+//            })
         
         //MARK: Error handling
         
@@ -203,18 +217,21 @@ class HomeViewController: UIViewController {
             self.present(navVC, animated: true, completion: nil)
         }
         else {
-            let loginModal = LoginController()
-            loginModal.modalPresentationStyle = .overCurrentContext
-            self.present(loginModal, animated: false, completion: nil)
+            LoginController.shared.modalPresentationStyle = .overCurrentContext
+            self.present(LoginController.shared, animated: false, completion: nil)
         }
         
     }
 }
 
-extension HomeViewController: LoginModalDelegate {
+extension HomeViewController: HomeTableViewCellDelegate {
     func presentLoginModal() {
-        let loginModal = LoginController()
-        loginModal.modalPresentationStyle = .overCurrentContext
-        self.present(loginModal, animated: false, completion: nil)
+        LoginController.shared.modalPresentationStyle = .overCurrentContext
+        self.present(LoginController.shared, animated: false, completion: nil)
+    }
+    func changeVotes(row: Int, updateType: voteUpdateType) {
+        viewModel.changeNumberofVotes.onNext((row: row, updateType: updateType))
     }
 }
+
+

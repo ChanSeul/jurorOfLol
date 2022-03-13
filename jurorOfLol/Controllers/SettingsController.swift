@@ -12,6 +12,7 @@ import RxRelay
 import RxSwift
 import Firebase
 
+
 class SettingsController: UIViewController {
     let disposeBag = DisposeBag()
     
@@ -69,9 +70,8 @@ class SettingsController: UIViewController {
                     self?.currentSections.accept([
                         Section(title: "계정", items: [
                             .staticCell(model: SettingsStaticOption(title: "로그인") { [weak self] in
-                                let loginModal = LoginController()
-                                loginModal.modalPresentationStyle = .overCurrentContext
-                                self?.present(loginModal, animated: false, completion: nil)
+                                LoginController.shared.modalPresentationStyle = .overCurrentContext
+                                self?.present(LoginController.shared, animated: false, completion: nil)
                             })
                         ])
                     ])

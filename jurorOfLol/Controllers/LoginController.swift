@@ -18,11 +18,17 @@ import RxGesture
 import RxRelay
 import simd
 
+//protocol LoginControllerDelegate {
+//    func fetchVoteInfo(userId: String)
+//}
 // Unhashed nonce.
 fileprivate var currentNonce: String?
 
 class LoginController: UIViewController {
+    static let shared = LoginController()
     var disposeBag = DisposeBag()
+    //var delegate: LoginControllerDelegate?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
@@ -231,11 +237,6 @@ extension LoginController: ASAuthorizationControllerDelegate {
                             print("Getting document error occured")
                         }
                     }
-//                    db.collection("users").document(user.uid).updateData(["userId": user.uid]) { err in
-//                        if let err = err {
-//                            print("User Id Setting error occured")
-//                        }
-//                    }
                     LoginViewModel.shared.isLogin.accept(true)
                     self.animateDismissView()
                 }

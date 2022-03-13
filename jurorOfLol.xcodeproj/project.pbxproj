@@ -10,9 +10,10 @@
 		487B0F67E71451B39E1301BA /* Pods_jurorOfLol.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F1C55C90B973849EE9ED4085 /* Pods_jurorOfLol.framework */; };
 		D8328AAE27D3C15D00A53455 /* HomeTableViewCellViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8328AAD27D3C15D00A53455 /* HomeTableViewCellViewModel.swift */; };
 		D83E484827CEB45300549FA3 /* SettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83E484727CEB45300549FA3 /* SettingsController.swift */; };
-		D83E484A27CF88E700549FA3 /* MyModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83E484927CF88E700549FA3 /* MyModel.swift */; };
+		D83E484A27CF88E700549FA3 /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83E484927CF88E700549FA3 /* UserModel.swift */; };
 		D83E484C27CFB32400549FA3 /* StaticSettingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83E484B27CFB32400549FA3 /* StaticSettingTableViewCell.swift */; };
 		D83E484E27CFBC1100549FA3 /* SwitchSettingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83E484D27CFBC1100549FA3 /* SwitchSettingTableViewCell.swift */; };
+		D85BCBF327DC15500000D486 /* ViewUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85BCBF227DC15500000D486 /* ViewUser.swift */; };
 		D8AD5EAC27CD2F450002CB7A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5EAB27CD2F450002CB7A /* AppDelegate.swift */; };
 		D8AD5EAE27CD2F450002CB7A /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5EAD27CD2F450002CB7A /* SceneDelegate.swift */; };
 		D8AD5EB527CD2F460002CB7A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8AD5EB427CD2F460002CB7A /* Assets.xcassets */; };
@@ -39,9 +40,10 @@
 		20B9FCF065625F6811E60653 /* Pods-jurorOfLol.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-jurorOfLol.release.xcconfig"; path = "Target Support Files/Pods-jurorOfLol/Pods-jurorOfLol.release.xcconfig"; sourceTree = "<group>"; };
 		D8328AAD27D3C15D00A53455 /* HomeTableViewCellViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTableViewCellViewModel.swift; sourceTree = "<group>"; };
 		D83E484727CEB45300549FA3 /* SettingsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsController.swift; sourceTree = "<group>"; };
-		D83E484927CF88E700549FA3 /* MyModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyModel.swift; sourceTree = "<group>"; };
+		D83E484927CF88E700549FA3 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		D83E484B27CFB32400549FA3 /* StaticSettingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSettingTableViewCell.swift; sourceTree = "<group>"; };
 		D83E484D27CFBC1100549FA3 /* SwitchSettingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchSettingTableViewCell.swift; sourceTree = "<group>"; };
+		D85BCBF227DC15500000D486 /* ViewUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewUser.swift; sourceTree = "<group>"; };
 		D8AD5EA827CD2F450002CB7A /* jurorOfLol.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = jurorOfLol.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8AD5EAB27CD2F450002CB7A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D8AD5EAD27CD2F450002CB7A /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -151,9 +153,10 @@
 			children = (
 				D8AD5ED127CD31830002CB7A /* HomeTableViewModel.swift */,
 				D8F322C527D06F68005BEA5D /* LoginViewModel.swift */,
-				D8AD5ED327CD31900002CB7A /* PostViewModel.swift */,
 				D8F322C727D08106005BEA5D /* SectionViewModel.swift */,
 				D8328AAD27D3C15D00A53455 /* HomeTableViewCellViewModel.swift */,
+				D8AD5ED327CD31900002CB7A /* PostViewModel.swift */,
+				D85BCBF227DC15500000D486 /* ViewUser.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -182,7 +185,7 @@
 			isa = PBXGroup;
 			children = (
 				D8AD5EC727CD30EC0002CB7A /* PostModel.swift */,
-				D83E484927CF88E700549FA3 /* MyModel.swift */,
+				D83E484927CF88E700549FA3 /* UserModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -321,13 +324,14 @@
 				D8AD5ED227CD31830002CB7A /* HomeTableViewModel.swift in Sources */,
 				D8F322C827D08106005BEA5D /* SectionViewModel.swift in Sources */,
 				D8328AAE27D3C15D00A53455 /* HomeTableViewCellViewModel.swift in Sources */,
+				D85BCBF327DC15500000D486 /* ViewUser.swift in Sources */,
 				D8AD5ED427CD31900002CB7A /* PostViewModel.swift in Sources */,
 				D8AD5EAE27CD2F450002CB7A /* SceneDelegate.swift in Sources */,
 				D83E484C27CFB32400549FA3 /* StaticSettingTableViewCell.swift in Sources */,
 				D83E484E27CFBC1100549FA3 /* SwitchSettingTableViewCell.swift in Sources */,
 				D8AD5ECA27CD31130002CB7A /* FireBaseServices.swift in Sources */,
 				D8F322C627D06F68005BEA5D /* LoginViewModel.swift in Sources */,
-				D83E484A27CF88E700549FA3 /* MyModel.swift in Sources */,
+				D83E484A27CF88E700549FA3 /* UserModel.swift in Sources */,
 				D8AD5EDA27CD31E60002CB7A /* TabBarController.swift in Sources */,
 				D8AD5EC627CD30C00002CB7A /* Utils.swift in Sources */,
 				D8AD5ED627CD31B10002CB7A /* HomeViewController.swift in Sources */,

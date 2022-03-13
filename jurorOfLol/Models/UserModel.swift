@@ -7,3 +7,6 @@
 
 import Foundation
 
+struct User {
+    var voteInfo: [String:Int]
+}

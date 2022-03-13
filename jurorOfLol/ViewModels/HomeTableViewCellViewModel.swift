@@ -13,63 +13,68 @@ import RxRelay
 import RxCocoa
 
 protocol HomeTableViewCellViewModelType {
-    var updateChampion1VotesUsers: AnyObserver<(userId: String, docId: String)> { get }
-    var updateChampion2VotesUsers: AnyObserver<(userId: String, docId: String)> { get }
+    var updateChampionVotesUsers: AnyObserver<(userId: String, docId: String, fromPollNumber: Int)> { get }
     var updateUsersVoteInfo: AnyObserver<(userId: String, docId: String, fromPollNumber: Int)> { get }
     var fetchUserInfoAboutVote: AnyObserver<(userId: String, docId: String, fromPollNumber: Int)> { get }
+    var setActivating: AnyObserver<Bool> { get }
+    
+    var activated: Observable<Bool> { get }
     var voteInfoAboutPost: Observable<(voteInfo: Int?,fromPollNumber: Int)> { get }
 }
 class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
     let disposeBag = DisposeBag()
-    let updateChampion1VotesUsers: AnyObserver<(userId: String, docId: String)>
-    let updateChampion2VotesUsers: AnyObserver<(userId: String, docId: String)>
+    let updateChampionVotesUsers: AnyObserver<(userId: String, docId: String, fromPollNumber: Int)>
     let updateUsersVoteInfo: AnyObserver<(userId: String, docId: String, fromPollNumber: Int)>
     let fetchUserInfoAboutVote: AnyObserver<(userId: String, docId: String, fromPollNumber: Int)>
+    var setActivating: AnyObserver<Bool>
+    
+    let activated: Observable<Bool>
     let voteInfoAboutPost: Observable<(voteInfo: Int?,fromPollNumber: Int)>
+    
     
     init() {
         let db = Firestore.firestore()
-        
-        let updatingChampion1VotesUsers = PublishSubject<(userId: String, docId: String)>()
-        let updatingChampion2VotesUsers = PublishSubject<(userId: String, docId: String)>()
+        let updatingChampionVotesUsers = PublishSubject<(userId: String, docId: String, fromPollNumber: Int)>()
         let updatingUsersVoteInfo = PublishSubject<(userId: String, docId: String, fromPollNumber: Int)>()
         let fetchingUserInfo = PublishSubject<(userId: String, docId: String, fromPollNumber: Int)>()
-        
+        let activating = BehaviorSubject<Bool>(value: false)
         let userVoteInfo = PublishSubject<(voteInfo: Int?, fromPollNumber: Int)>()
         
         //INPUT
-        updateChampion1VotesUsers = updatingChampion1VotesUsers.asObserver()
-        updateChampion2VotesUsers = updatingChampion2VotesUsers.asObserver()
+        updateChampionVotesUsers = updatingChampionVotesUsers.asObserver()
         updateUsersVoteInfo = updatingUsersVoteInfo.asObserver()
         fetchUserInfoAboutVote = fetchingUserInfo.asObserver()
+        setActivating = activating.asObserver()
         
         //OUTPUT
+        activated = activating.asObservable()
         voteInfoAboutPost = userVoteInfo.asObservable()
         
-        updatingChampion1VotesUsers
-            .subscribe(onNext: { userID, docId in
+        
+        updatingChampionVotesUsers
+            .subscribe(onNext: { [weak self] userId, docId, fromPollNumber in
+                
                 let postRef = db.collection("posts").document(docId)
-                postRef.updateData([
-                    "champion1VotesUsers": FieldValue.arrayUnion([userID]),
-                    "champion2VotesUsers": FieldValue.arrayRemove([userID])
-                ]){  err in
-                    if let err = err {
-                        print("updatingVotes1 postReferror occured")
+                if fromPollNumber == 1 {
+                    postRef.updateData([
+                        "champion1VotesUsers": FieldValue.arrayUnion([userId]),
+                        "champion2VotesUsers": FieldValue.arrayRemove([userId])
+                    ]){ err in
+                        if let err = err {
+                            print("updatingVotes1 postReferror occured")
+                        }
                     }
                 }
-        })
-            .disposed(by: disposeBag)
-        
-        updatingChampion2VotesUsers
-            .subscribe(onNext: { userId, docId in
-                let postRef = db.collection("posts").document(docId)
-                postRef.updateData([
-                    "champion1VotesUsers": FieldValue.arrayRemove([userId]),
-                    "champion2VotesUsers": FieldValue.arrayUnion([userId])
-                ]) { err in
-                    if let err = err {
-                        print("updatingVotes2 error occured")
+                else if fromPollNumber == 2 {
+                    postRef.updateData([
+                        "champion1VotesUsers": FieldValue.arrayRemove([userId]),
+                        "champion2VotesUsers": FieldValue.arrayUnion([userId])
+                    ]) { err in
+                        if let err = err {
+                            print("updatingVotes2 error occured")
+                        }
                     }
+
                 }
         })
             .disposed(by: disposeBag)
@@ -81,17 +86,16 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                 var update = [String:Any]()
                 update[key] = fromPollNumber
                 docRef.updateData(update) { err in
-                                        if let err = err {
-                                            print("updatingUsersVoteInfo error occured")
-                                        }
-                                    }
+                    if let err = err { print("updatingUsersVoteInfo error occured") }
+                    else { activating.onNext(false); print("햿잖아")}
+                }
             })
             .disposed(by: disposeBag)
-        
+
         fetchingUserInfo
             .subscribe(onNext: { userId, docId, fromPollNumber in
                 let docRef = db.collection("users").document(userId)
-                docRef.getDocument() { document, error in
+                docRef.getDocument() { [weak self] document, error in
                     if let document = document, document.exists {
                         let key = "voteInfo." + docId
                         let voteInfo = document.get(key) as? Int
@@ -103,5 +107,7 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                 }
             })
             .disposed(by: disposeBag)
+        
+        
     }
 }

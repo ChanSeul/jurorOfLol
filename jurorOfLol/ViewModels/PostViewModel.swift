@@ -7,39 +7,48 @@
 
 import Foundation
 import SwiftUI
-import AVFoundation
+
+
+enum voteUpdateType: String {
+    case onlyAddFirst
+    case onlyAddSecond
+    case addFirstDecreaseSecond
+    case decreaseFirstAddSecond
+}
 
 struct ViewPost {
-    private let post:post
-    
-    var url: String? {
-        return post.url
-    }
-    var chapion1: String? {
-        return post.champion1
-    }
-    var champion1Votes: Double? {
-        return post.champion1Votes
-    }
-    var champion2: String? {
-        return post.champion2
-    }
-    var champion2Votes: Double? {
-        return post.champion2Votes
-    }
-    var text: String? {
-        return post.text
-    }
-    var date: String? {
-        return post.date
-    }
-    var docId: String? {
-        return post.docId
-    }
+    var url: String
+    var champion1: String
+    var champion1Votes: Double
+    var champion2: String
+    var champion2Votes: Double
+    var text: String
+    var date: String
+    var docId: String
     
     init(post:post) {
-        self.post = post
+        self.url = post.url
+        self.champion1 = post.champion1
+        self.champion1Votes = post.champion1Votes
+        self.champion2 = post.champion2
+        self.champion2Votes = post.champion2Votes
+        self.text = post.text
+        self.date = post.date
+        self.docId = post.docId
     }
-    
+    mutating func changeNumberOfVotes(updateType: voteUpdateType) {
+        switch updateType {
+        case .onlyAddFirst:
+            self.champion1Votes += 1.0
+        case .onlyAddSecond:
+            self.champion2Votes += 1.0
+        case .addFirstDecreaseSecond:
+            self.champion1Votes += 1.0
+            self.champion2Votes -= 1.0
+        case .decreaseFirstAddSecond:
+            self.champion1Votes -= 1.0
+            self.champion2Votes += 1.0
+        }
+    }
 }
 

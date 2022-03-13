@@ -28,11 +28,14 @@ class PollView: UIView {
         percentage.asDriver() { _ in .never() }
             .drive(onNext: { [weak self] percentageNumber in
                 guard let self = self else { return }
-                print("------------------")
-                print(percentageNumber)
-                print("------------------")
-                self.percentageFillingView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: percentageNumber / 100).isActive = true
-                self.percentageLabel.text = String(format: "%.f",percentageNumber) + "%"
+                //print("ssibal \(percentageNumber)")
+                var n = percentageNumber
+                if n == 1.0 { n = 0.9825 }
+                else if n == 0 { n = 0.00001 }
+                
+                self.percentageFillingView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: n).isActive = true
+                
+                self.percentageLabel.text = String(format: "%.f",percentageNumber * 100) + "%"
             })
             .disposed(by: disposeBag)
     }
@@ -47,7 +50,7 @@ class PollView: UIView {
     let championLabel: UILabel = {
         let championLabel = UILabel()
         championLabel.translatesAutoresizingMaskIntoConstraints = false
-        championLabel.textColor = .systemGray4
+        championLabel.textColor = .systemBlue
         //championLabel.text = "그레이브즈"
         return championLabel
     }()
@@ -55,7 +58,7 @@ class PollView: UIView {
     let percentageLabel: UILabel = {
         let percentageLabel = UILabel()
         percentageLabel.translatesAutoresizingMaskIntoConstraints = false
-        percentageLabel.textColor = .systemGray4
+        percentageLabel.textColor = .systemBlue
         //percentageLabel.text = "36%"
         return percentageLabel
     }()
@@ -71,6 +74,7 @@ class PollView: UIView {
     
         addSubview(percentageFillingView)
         addSubview(championLabel)
+        //championLabel.addSubview(percentageLabel)
         addSubview(percentageLabel)
         
         let margin:CGFloat = 9
@@ -78,18 +82,19 @@ class PollView: UIView {
             percentageFillingView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 3),
             percentageFillingView.topAnchor.constraint(equalTo: self.topAnchor, constant: 3),
             percentageFillingView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -3),
-            //percentageFillingView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.5),
+            //percentageFillingView.widthAnchor.constraint(lessThanOrEqualTo: self.widthAnchor, multiplier: 1.0),
             
             championLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: margin),
-            championLabel.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.835),
+            championLabel.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.8),
             championLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: margin),
             championLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -margin),
             
-            percentageLabel.leadingAnchor.constraint(equalTo: championLabel.trailingAnchor, constant: margin),
+            //percentageLabel.leadingAnchor.constraint(equalTo: championLabel.trailingAnchor),
             percentageLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -margin),
             percentageLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: margin),
             percentageLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -margin)
         ])
+ 
     }
 }
 

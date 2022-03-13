@@ -14,7 +14,7 @@ import Firebase
 
 class UploadViewController: UIViewController {
     let database = Firestore.firestore()
-    private var uploadData = post()
+    private var uploadData = post(url: "", champion1: "", champion1Votes: 0, champion2: "", champion2Votes: 0, text: "", date: "", docId: "")
     
     override func viewDidLoad() {
         view.backgroundColor = .systemBackground
@@ -70,21 +70,22 @@ class UploadViewController: UIViewController {
         dismiss(animated: true, completion: nil)
     }
     @objc private func complete() {
-        guard let url = uploadData.url?.youTubeId else { return showAlert("유효하지 않은 유튜브 URL입니다.", "") }
-        guard let champion1 = uploadData.champion1 else { return showAlert("작성자의 챔피언을 입력하세요.", "") }
-        guard let champion2 = uploadData.champion2 else { return showAlert("상대방의 챔피언을 입력하세요.", "") }
-        guard let text = uploadData.text else { return showAlert("본문을 작성해주세요.", "") }
         guard let user = Auth.auth().currentUser else { return }
+        guard let url = uploadData.url.youTubeId else { return showAlert("유효하지 않은 유튜브 URL입니다.", "") }
+        if uploadData.champion1 == "" { return showAlert("작성자의 챔피언을 입력하세요.", "") }
+        if uploadData.champion2 == "" { return showAlert("상대방의 챔피언을 입력하세요.", "") }
+        if uploadData.text == "" { return showAlert("본문을 작성해주세요.", "") }
+        
         
         database.collection("posts").addDocument(data: ["userID": user.uid,
                                                         "url": url,
-                                                        "champion1": champion1,
+                                                        "champion1": uploadData.champion1,
                                                         "champion1Votes": 0,
                                                         "champion1VotesUsers": [],
-                                                        "champion2": champion2,
+                                                        "champion2": uploadData.champion2,
                                                         "champion2Votes": 0,
                                                         "champion2VotesUsers": [],
-                                                        "text": text,
+                                                        "text": uploadData.text,
                                                         "date": Date().timeIntervalSince1970])
         
         

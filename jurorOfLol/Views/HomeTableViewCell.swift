@@ -14,200 +14,176 @@ import RxGesture
 import YoutubePlayer_in_WKWebView
 import Firebase
 
-protocol LoginModalDelegate {
+protocol HomeTableViewCellDelegate {
     func presentLoginModal()
+    func changeVotes(row: Int, updateType: voteUpdateType)
 }
 
 class HomeTableViewCell: UITableViewCell {
-    let viewModel: HomeTableViewCellViewModelType
+    var viewModel: HomeTableViewCellViewModelType
     static let identifier = "HomeTableViewCell"
-    private let cellDisposeBag = DisposeBag()
-    var delegate: LoginModalDelegate?
+    var cellDisposeBag = DisposeBag()
+    var delegate: HomeTableViewCellDelegate?
     
     var disposeBag = DisposeBag()
     
-    let data = PublishRelay<ViewPost>()
-    //let onData: AnyObserver<ViewPost>
+    var data = PublishRelay<ViewPost>()
     
     var isLoaded = false
     
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        //onData = data.asObserver()
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) { // 순서 1번
         self.viewModel = HomeTableViewCellViewModel()
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
-        bind()
         configureUI()
     }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("cell init error")
+    }
+    
     func bind() {
         data.asDriver() { _ in .never() }
             .drive(onNext: { [weak self] post in
-                guard let self = self,
-                      let url = post.url,
-                      let champion1 = post.chapion1,
-                      let champion2 = post.champion2,
-                      let champion1Votes = post.champion1Votes,
-                      let champion2Votes =  post.champion2Votes,
-                      let date = post.date,
-                      let text = post.text
-                else { return }
+                guard let self = self else { return }
                 
                 if self.isLoaded == true {
-                    self.videoContainerView.cueVideo(byId: url, startSeconds: 0, suggestedQuality: .default)
+                    self.videoContainerView.cueVideo(byId: post.url, startSeconds: 0, suggestedQuality: .default)
                 }
                 else {
-                    self.videoContainerView.load(withVideoId: url)
+                    self.videoContainerView.load(withVideoId: post.url)
                     self.isLoaded = true
                 }
-                self.postDate.text = date
-                self.postText.text = text
-                self.poll1.championLabel.text = champion1
-                self.poll2.championLabel.text = champion2
+                self.postDate.text = post.date
+                self.postText.text = post.text
+                self.poll1.championLabel.text = post.champion1
+                self.poll2.championLabel.text = post.champion2
                 
                 var percentage1: Double
                 var percentage2: Double
             
-                if champion1Votes == 0 {
+                if post.champion1Votes == 0 {
                     percentage1 = 0
                 } else {
-                    percentage1 = round(champion1Votes / (champion1Votes + champion2Votes) * 100)
+                    percentage1 = round(post.champion1Votes / (post.champion1Votes + post.champion2Votes))
                 }
-                if champion2Votes == 0 {
+                if post.champion2Votes == 0 {
                     percentage2 = 0
                 } else {
-                    percentage2 = round(champion2Votes / (champion1Votes + champion2Votes) * 100)
+                    percentage2 = round(post.champion2Votes / (post.champion1Votes + post.champion2Votes))
                 }
-                
+                print("bind: \(percentage1), \(percentage2)")
                 self.poll1.percentage.accept(percentage1)
                 self.poll2.percentage.accept(percentage2)
                 
-//                self.poll1.percentageLabel.text = String(format: "%.f",percentage1) + "%"
-//                self.poll2.percentageLabel.text = String(format: "%.f",percentage2) + "%"
-
-//                NSLayoutConstraint.activate([
-//                    self.poll1.percentageFillingView.widthAnchor.constraint(equalTo: self.containerView.widthAnchor, multiplier: percentage1 / 100),
-//                    self.poll2.percentageFillingView.widthAnchor.constraint(equalTo: self.containerView.widthAnchor, multiplier: percentage2 / 100)
-//                ])
 
             } )
             .disposed(by: cellDisposeBag)
         
         poll1.rx.tapGesture()
             .when(.recognized)
-            //.asDriver() { _ in .never() }
-            .withLatestFrom(data/*.asDriver() { _ in .never() }*/)
-            .subscribe(onNext: { [weak self] post in
-                if let user = Auth.auth().currentUser {
-                    guard let docId = post.docId else { return }
-                    
-                    self?.viewModel.updateChampion1VotesUsers.onNext((userId: user.uid, docId: docId))
-                    self?.viewModel.fetchUserInfoAboutVote.onNext((userId: user.uid, docId: docId, fromPollNumber: 1))
-//                    DispatchQueue.global().asyncAfter(deadline: DispatchTime.now() + 2) {
-//                        self?.viewModel.updateUsersVoteInfo.onNext((userId: user.uid, docId: docId, fromPollNumber: 1))
-//                    }
-                    
-                }
+            .withLatestFrom(data)
+            .withLatestFrom(viewModel.activated) { ($0, $1) }
+            .subscribe(onNext: { [weak self] (post,isActivating) in
+                if isActivating == true { print("activatin"); return }
                 else {
-                    self?.delegate?.presentLoginModal()
+                    print("\(isActivating) ssibal")
+                    self?.viewModel.setActivating.onNext(true)
+                    if let user = Auth.auth().currentUser {
+                        self?.viewModel.updateChampionVotesUsers.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 1))
+                        self?.viewModel.fetchUserInfoAboutVote.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 1))
+                    }
+                    else {
+                        self?.delegate?.presentLoginModal()
+                    }
+                
                 }
             })
             .disposed(by: cellDisposeBag)
         
         poll2.rx.tapGesture()
             .when(.recognized)
-            //.asDriver() { _ in .never() }
-            .withLatestFrom(data/*.asDriver() { _ in .never() }*/)
-            .subscribe(onNext: { [weak self] post in
-                if let user = Auth.auth().currentUser {
-                    guard let docId = post.docId else { return }
-                    
-                    self?.viewModel.updateChampion2VotesUsers.onNext((userId: user.uid, docId: docId))
-                    self?.viewModel.fetchUserInfoAboutVote.onNext((userId: user.uid, docId: docId, fromPollNumber: 2))
-//                    DispatchQueue.global().asyncAfter(deadline: DispatchTime.now() + 2) {
-//                        self?.viewModel.updateUsersVoteInfo.onNext((userId: user.uid, docId: docId, fromPollNumber: 2))
-//                    }
-                    // Poll UI는 viewModel.voteInfoAboutPost 구독으로 처리
-                }
+            .withLatestFrom(data)
+            .withLatestFrom(viewModel.activated) { ($0, $1) }
+            .subscribe(onNext: { [weak self] (post,isActivating) in
+                if isActivating == true { print("activatin"); return }
                 else {
-                    self?.delegate?.presentLoginModal()
+                    self?.viewModel.setActivating.onNext(true)
+                    if let user = Auth.auth().currentUser {
+                        self?.viewModel.updateChampionVotesUsers.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 2))
+                        self?.viewModel.fetchUserInfoAboutVote.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 2))
+                    }
+                    else {
+                        self?.delegate?.presentLoginModal()
+                    }
                 }
+                
             })
             .disposed(by: cellDisposeBag)
-        
+
         viewModel.voteInfoAboutPost
-            .withLatestFrom(data/*.asDriver() { _ in .never() }*/) {
-                ($0, $1)
-            }
+            .withLatestFrom(data) { ($0, $1) }
             .subscribe(onNext: { [weak self] (info, post) in
-                guard let champion1Votes = post.champion1Votes,
-                      let champion2Votes = post.champion2Votes,
-                      let docId = post.docId
-                else { return }
-                
-                print(info.fromPollNumber)
-                print(info.voteInfo)
+                guard let self = self else { return }
 
-                DispatchQueue.global().sync {
-                    var percentage1: Double
-                    var percentage2: Double
-                    // poll1를 탭하였을 때 UI처리
-                    if info.fromPollNumber == 1 {
-                        if info.voteInfo == nil {
-                            // case: 전에 아무것도 선택 안 한 경우
-                            percentage1 = round((champion1Votes + 1) / ((champion1Votes + 1) + champion2Votes) * 100)
-                            percentage2 = round(champion2Votes / ((champion1Votes + 1) + champion2Votes) * 100)
-                            self?.poll1.percentage.accept(percentage1)
-                            self?.poll2.percentage.accept(percentage2)
-                        }
-
-                        else if info.voteInfo == 2 {
-                            // case: 전에 poll2을 선택하였으므로, poll2에서 1만큼 줄이고, poll1에서 1만큼 증가
-                            percentage1 = round((champion1Votes + 1) / (champion1Votes + champion2Votes) * 100)
-                            percentage2 = round((champion2Votes - 1) / (champion1Votes + champion2Votes) * 100)
-                            self?.poll1.percentage.accept(percentage1)
-                            self?.poll2.percentage.accept(percentage2)
+                if info.fromPollNumber == 1 {
+                    if info.voteInfo == nil {
+                        // case: 전에 아무것도 선택 안 한 경우
+                        self.delegate?.changeVotes(row: self.tag, updateType: .onlyAddFirst)
+                        if let user = Auth.auth().currentUser {
+                            self.viewModel.updateUsersVoteInfo.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 1))
                         }
                     }
-                    else if info.fromPollNumber == 2 {
-                        if info.voteInfo == nil {
-                            // case: 전에 아무것도 선택 안 한 경우
-                            percentage1 = round(champion1Votes / (champion1Votes + (champion2Votes + 1)) * 100)
-                            percentage2 = round((champion2Votes + 1) / (champion1Votes + (champion2Votes + 1)) * 100)
-                            self?.poll1.percentage.accept(percentage1)
-                            self?.poll2.percentage.accept(percentage2)
-                        }
-
-                        else if info.voteInfo == 1 {
-                            // case: 전에 poll1을 선택하였으므로, poll1에서 1만큼 줄이고, poll2에서 1만큼 증가
-                            percentage1 = round((champion1Votes - 1) / (champion1Votes + champion2Votes) * 100)
-                            percentage2 = round((champion2Votes + 1) / (champion1Votes + champion2Votes) * 100)
-                            self?.poll1.percentage.accept(percentage1)
-                            self?.poll2.percentage.accept(percentage2)
+                    
+                    else if info.voteInfo == 1 {
+                        self.viewModel.setActivating.onNext(false)
+                    }
+                    
+                    else if info.voteInfo == 2 {
+                        // case: 전에 poll2을 선택하였으므로, poll2에서 1만큼 줄이고, poll1에서 1만큼 증가
+                        self.delegate?.changeVotes(row: self.tag, updateType: .addFirstDecreaseSecond)
+                        if let user = Auth.auth().currentUser {
+                            self.viewModel.updateUsersVoteInfo.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 1))
                         }
                     }
+                    
+                    
+                    
                 }
-                if let user = Auth.auth().currentUser {
-                    self?.viewModel.updateUsersVoteInfo.onNext((userId: user.uid, docId: docId, fromPollNumber: info.fromPollNumber))
+                else if info.fromPollNumber == 2 {
+                    if info.voteInfo == nil {
+                        // case: 전에 아무것도 선택 안 한 경우
+                        self.delegate?.changeVotes(row: self.tag, updateType: .onlyAddSecond)
+                        if let user = Auth.auth().currentUser {
+                            self.viewModel.updateUsersVoteInfo.onNext((userId: user.uid, docId: post.docId, fromPollNumber: info.fromPollNumber))
+                        }
+                    }
+
+                    else if info.voteInfo == 1 {
+                        // case: 전에 poll1을 선택하였으므로, poll1에서 1만큼 줄이고, poll2에서 1만큼 증가
+                        self.delegate?.changeVotes(row: self.tag, updateType: .decreaseFirstAddSecond)
+                        if let user = Auth.auth().currentUser {
+                            self.viewModel.updateUsersVoteInfo.onNext((userId: user.uid, docId: post.docId, fromPollNumber: info.fromPollNumber))
+                        }
+                    }
+                    
+                    else if info.voteInfo == 2 {
+                        self.viewModel.setActivating.onNext(false)
+                    }
                 }
             })
             .disposed(by: disposeBag)
     }
     
     
-    required init?(coder aDecoder: NSCoder) {
-//        data = PublishRelay<ViewPost>()
-//        viewModel = HomeTableViewCellViewModel()
-//        //onData = data.asObserver()
-//
-//
-//        super.init(coder: aDecoder)
-//
-        fatalError("cell init error")
-        
-    }
+    
+    
     override func prepareForReuse() {
         super.prepareForReuse()
+        viewModel = HomeTableViewCellViewModel()
+        data = PublishRelay<ViewPost>()
         disposeBag = DisposeBag()
+        cellDisposeBag = DisposeBag()
+        
     }
     
     //MARK: UI

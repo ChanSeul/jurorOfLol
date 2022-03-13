@@ -9,14 +9,18 @@ import Foundation
 import RxSwift
 import RxRelay
 import RxCocoa
+import Firebase
 
 protocol HomeViewModelType {
     var fetchPosts: AnyObserver<Void> { get }
+    var changeNumberofVotes: AnyObserver<(row: Int, updateType: voteUpdateType)> { get }
     var clearPosts: AnyObserver<Void> { get }
-
+    //var refetchPosts: AnyObserver<(row: Int, docId: String)> { get }
+    
     var activated: Observable<Bool> { get }
     var errorMessage: Observable<NSError> { get }
     var allPosts: Observable<[ViewPost]> { get }
+    
 }
 
 class HomeViewModel: HomeViewModelType {
@@ -24,39 +28,57 @@ class HomeViewModel: HomeViewModelType {
     
     // INPUT
     let fetchPosts: AnyObserver<Void>
+    let changeNumberofVotes: AnyObserver<(row: Int, updateType: voteUpdateType)>
     let clearPosts: AnyObserver<Void>
+    //let refetchPosts: AnyObserver<(row: Int, docId: String)>
     
     // OUTPUT
     let activated: Observable<Bool>
     let errorMessage: Observable<NSError>
     let allPosts: Observable<[ViewPost]>
     
+    
     init(fireBaseService: FirebaseServiceProtocol = FireBaseService()) {
-        let fetching = PublishSubject<Void>()
+        let fetchingPosts = PublishSubject<Void>()
+        let changingNumberofVotes = PublishSubject<(row: Int, updateType: voteUpdateType)>()
         let clearing = PublishSubject<Void>()
+        //let refetching = PublishSubject<(row: Int, docId: String)>()
         let activating = BehaviorSubject<Bool>(value: false)
         let error = PublishSubject<Error>()
         let posts = BehaviorRelay<[ViewPost]>(value: [])
         
         
+        
         // INPUT
         
-        fetchPosts = fetching.asObserver()
+        fetchPosts = fetchingPosts.asObserver()
         
-        fetching
+        fetchingPosts
             .do(onNext: { _ in activating.onNext(true) })
             .withLatestFrom(posts)
             .map { $0.count }
             .flatMap{ (count) -> Observable<[post]> in
-                    fireBaseService.fetchDataRx(startIdx: count) }
+                    fireBaseService.fetchPostsRx(startIdx: count) }
             .map { $0.map { ViewPost(post: $0) } }
             .do(onNext: { _ in activating.onNext(false) })
             .do(onError: { err in error.onNext(err) })
             .subscribe(onNext: { newPosts in
-                let oldData = posts.value
-                posts.accept(oldData + newPosts)
+                let oldPosts = posts.value
+                posts.accept(oldPosts + newPosts)
             })
             .disposed(by: disposeBag)
+                
+        changeNumberofVotes = changingNumberofVotes.asObserver()
+                
+        changingNumberofVotes
+            .subscribe(onNext: { (row, updateType) in
+                var newPosts = posts.value
+                newPosts[row].changeNumberOfVotes(updateType: updateType)
+                posts.accept(newPosts)
+            })
+            .disposed(by: disposeBag)
+        
+ 
         
         clearPosts = clearing.asObserver()
         
@@ -65,11 +87,23 @@ class HomeViewModel: HomeViewModelType {
                 posts.accept([])
             })
             .disposed(by: disposeBag)
+        
+        
+//        refetchPosts = refetching.asObserver()
+//
+//        refetching
+//            .subscribe(onNext: { (row, docId) in
+//                fireBaseService.refetchData(docId: docId)
+//            })
+//            .disposed(by: disposeBag)
+    
         // OUTPUT
         
         activated = activating.distinctUntilChanged()
         errorMessage = error.map { $0 as NSError }
         allPosts = posts.asObservable()
+        
+        
         
         
         
