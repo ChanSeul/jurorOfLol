@@ -84,18 +84,12 @@ class HomeTableViewCell: UITableViewCell {
             .withLatestFrom(data)
             .withLatestFrom(viewModel.activated) { ($0, $1) }
             .subscribe(onNext: { [weak self] (post,isActivating) in
-                if isActivating == true { print("activatin"); return }
+                guard let user = Auth.auth().currentUser else { self?.delegate?.presentLoginModal(); return }
+                if isActivating == true { return }
                 else {
-                    print("\(isActivating) ssibal")
                     self?.viewModel.setActivating.onNext(true)
-                    if let user = Auth.auth().currentUser {
-                        self?.viewModel.updateChampionVotesUsers.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 1))
-                        self?.viewModel.fetchUserInfoAboutVote.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 1))
-                    }
-                    else {
-                        self?.delegate?.presentLoginModal()
-                    }
-                
+                    self?.viewModel.updateChampionVotesUsers.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 1))
+                    self?.viewModel.fetchUserInfoAboutVote.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 1))
                 }
             })
             .disposed(by: cellDisposeBag)
@@ -105,16 +99,12 @@ class HomeTableViewCell: UITableViewCell {
             .withLatestFrom(data)
             .withLatestFrom(viewModel.activated) { ($0, $1) }
             .subscribe(onNext: { [weak self] (post,isActivating) in
-                if isActivating == true { print("activatin"); return }
+                guard let user = Auth.auth().currentUser else { self?.delegate?.presentLoginModal(); return }
+                if isActivating == true { return }
                 else {
                     self?.viewModel.setActivating.onNext(true)
-                    if let user = Auth.auth().currentUser {
-                        self?.viewModel.updateChampionVotesUsers.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 2))
-                        self?.viewModel.fetchUserInfoAboutVote.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 2))
-                    }
-                    else {
-                        self?.delegate?.presentLoginModal()
-                    }
+                    self?.viewModel.updateChampionVotesUsers.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 2))
+                    self?.viewModel.fetchUserInfoAboutVote.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 2))
                 }
                 
             })
