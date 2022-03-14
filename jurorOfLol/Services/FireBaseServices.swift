@@ -53,15 +53,15 @@ class FireBaseService: FirebaseServiceProtocol {
                         guard let champion1 = document.data()["champion1"] as? String else {
                             continue
                         }
-                        guard let champion1Votes = document.data()["champion1Votes"] as? Double else {
-                            continue
-                        }
+//                        guard let champion1Votes = document.data()["champion1Votes"] as? Double else {
+//                            continue
+//                        }
                         guard let champion2 = document.data()["champion2"] as? String else {
                             continue
                         }
-                        guard let champion2Votes = document.data()["champion2Votes"] as? Double else {
-                            continue
-                        }
+//                        guard let champion2Votes = document.data()["champion2Votes"] as? Double else {
+//                            continue
+//                        }
                         guard let text = document.data()["text"] as? String else {
                             continue
                         }
@@ -70,9 +70,9 @@ class FireBaseService: FirebaseServiceProtocol {
                         }
                         nextPosts.append(post(url: url,
                                               champion1: champion1,
-                                              champion1Votes: champion1Votes,
+//                                              champion1Votes: champion1Votes,
                                               champion2: champion2,
-                                              champion2Votes: champion2Votes,
+//                                              champion2Votes: champion2Votes,
                                               text: text,
                                               date: formatter.string(from: Date(timeIntervalSince1970: date)),
                                               docId: document.documentID
@@ -112,15 +112,15 @@ class FireBaseService: FirebaseServiceProtocol {
                                 guard let champion1 = document.data()["champion1"] as? String else {
                                     continue
                                 }
-                                guard let champion1Votes = document.data()["champion1Votes"] as? Double else {
-                                    continue
-                                }
+//                                guard let champion1Votes = document.data()["champion1Votes"] as? Double else {
+//                                    continue
+//                                }
                                 guard let champion2 = document.data()["champion2"] as? String else {
                                     continue
                                 }
-                                guard let champion2Votes = document.data()["champion2Votes"] as? Double else {
-                                    continue
-                                }
+//                                guard let champion2Votes = document.data()["champion2Votes"] as? Double else {
+//                                    continue
+//                                }
                                 guard let text = document.data()["text"] as? String else {
                                     continue
                                 }
@@ -130,9 +130,9 @@ class FireBaseService: FirebaseServiceProtocol {
                                 
                                 nextPosts.append(post(url: url,
                                                       champion1: champion1,
-                                                      champion1Votes: champion1Votes,
+//                                                      champion1Votes: champion1Votes,
                                                       champion2: champion2,
-                                                      champion2Votes: champion2Votes,
+//                                                      champion2Votes: champion2Votes,
                                                       text: text,
                                                       date: formatter.string(from: Date(timeIntervalSince1970: date)),
                                                       docId: document.documentID

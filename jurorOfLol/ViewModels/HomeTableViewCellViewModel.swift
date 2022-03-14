@@ -54,19 +54,19 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
         updatingChampionVotesUsers
             .subscribe(onNext: { [weak self] userId, docId, fromPollNumber in
                 
-                let postRef = db.collection("posts").document(docId)
+                let docRef = db.collection("userSetForVoteByPost").document(docId)
                 if fromPollNumber == 1 {
-                    postRef.updateData([
+                    docRef.updateData([
                         "champion1VotesUsers": FieldValue.arrayUnion([userId]),
                         "champion2VotesUsers": FieldValue.arrayRemove([userId])
-                    ]){ err in
+                    ]) { err in
                         if let err = err {
                             print("updatingVotes1 postReferror occured")
                         }
                     }
                 }
                 else if fromPollNumber == 2 {
-                    postRef.updateData([
+                    docRef.updateData([
                         "champion1VotesUsers": FieldValue.arrayRemove([userId]),
                         "champion2VotesUsers": FieldValue.arrayUnion([userId])
                     ]) { err in
@@ -74,8 +74,8 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                             print("updatingVotes2 error occured")
                         }
                     }
-
                 }
+                
         })
             .disposed(by: disposeBag)
         

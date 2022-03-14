@@ -61,19 +61,19 @@ class HomeTableViewCell: UITableViewCell {
                 var percentage1: Double
                 var percentage2: Double
             
-                if post.champion1Votes == 0 {
-                    percentage1 = 0
-                } else {
-                    percentage1 = round(post.champion1Votes / (post.champion1Votes + post.champion2Votes))
-                }
-                if post.champion2Votes == 0 {
-                    percentage2 = 0
-                } else {
-                    percentage2 = round(post.champion2Votes / (post.champion1Votes + post.champion2Votes))
-                }
-                print("bind: \(percentage1), \(percentage2)")
-                self.poll1.percentage.accept(percentage1)
-                self.poll2.percentage.accept(percentage2)
+//                if post.champion1Votes == 0 {
+//                    percentage1 = 0
+//                } else {
+//                    percentage1 = round(post.champion1Votes / (post.champion1Votes + post.champion2Votes))
+//                }
+//                if post.champion2Votes == 0 {
+//                    percentage2 = 0
+//                } else {
+//                    percentage2 = round(post.champion2Votes / (post.champion1Votes + post.champion2Votes))
+//                }
+//                print("bind: \(percentage1), \(percentage2)")
+//                self.poll1.percentage.accept(percentage1)
+//                self.poll2.percentage.accept(percentage2)
                 
 
             } )
@@ -90,6 +90,7 @@ class HomeTableViewCell: UITableViewCell {
                     self?.viewModel.setActivating.onNext(true)
                     self?.viewModel.updateChampionVotesUsers.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 1))
                     self?.viewModel.fetchUserInfoAboutVote.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 1))
+                    
                 }
             })
             .disposed(by: cellDisposeBag)

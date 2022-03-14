@@ -10,21 +10,25 @@ import UIKit
 import FirebaseFirestore
 import KMPlaceholderTextView
 import Firebase
-
+import RxSwift
+import RxCocoa
 
 class UploadViewController: UIViewController {
-    let database = Firestore.firestore()
-    private var uploadData = post(url: "", champion1: "", champion1Votes: 0, champion2: "", champion2Votes: 0, text: "", date: "", docId: "")
+    let viewModel: UploadViewModelType?
+    var disposeBag = DisposeBag()
+    
+    init(viewModel: UploadViewModelType = UploadViewModel()) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("UploadViewController init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
-        view.backgroundColor = .systemBackground
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(dismissSelf))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "완료", style: .plain, target: self, action: #selector(complete))
-        navigationController?.navigationBar.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
-        view.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
-        uploadTableView.delegate = self
-        uploadTableView.dataSource = self
         configureUI()
+        bind()
     }
     
     //MARK: UI
@@ -47,6 +51,14 @@ class UploadViewController: UIViewController {
     }()
     
     func configureUI() {
+        view.backgroundColor = .systemBackground
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: nil)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "완료", style: .plain, target: self, action: nil)
+        navigationController?.navigationBar.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        view.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        uploadTableView.delegate = self
+        uploadTableView.dataSource = self
+        
         let guide = view.safeAreaLayoutGuide
         
         view.addSubview(uploadTableView)
@@ -65,35 +77,32 @@ class UploadViewController: UIViewController {
         ])
         
     }
-    
-    @objc private func dismissSelf() {
-        dismiss(animated: true, completion: nil)
+    func bind() {
+        guard let viewModel = self.viewModel else { return }
+        navigationItem.rightBarButtonItem?.rx.tap
+            .withLatestFrom(viewModel.writtenPost)
+            .subscribe(onNext: { [weak self] written in
+                if written.url.youTubeId == nil { self?.showAlert("유효하지 않은 유튜브 URL입니다.", ""); return }
+                else if written.champion1 == "" { self?.showAlert("작성자의 챔피언을 입력하세요.", ""); return }
+                else if written.champion2 == "" { self?.showAlert("상대방의 챔피언을 입력하세요.", ""); return }
+                else if written.text == "" { self?.showAlert("본문을 작성해주세요.", ""); return }
+
+                self?.viewModel?.uploadPost.onNext(())
+                self?.dismiss(animated: true, completion: nil)
+                
+            })
+            .disposed(by: disposeBag)
+        
+        navigationItem.leftBarButtonItem?.rx.tap
+            .subscribe(onNext: { [weak self] in
+                self?.dismiss(animated: true, completion: nil)
+            })
+            .disposed(by: disposeBag)
     }
-    @objc private func complete() {
-        guard let user = Auth.auth().currentUser else { return }
-        guard let url = uploadData.url.youTubeId else { return showAlert("유효하지 않은 유튜브 URL입니다.", "") }
-        if uploadData.champion1 == "" { return showAlert("작성자의 챔피언을 입력하세요.", "") }
-        if uploadData.champion2 == "" { return showAlert("상대방의 챔피언을 입력하세요.", "") }
-        if uploadData.text == "" { return showAlert("본문을 작성해주세요.", "") }
-        
-        
-        database.collection("posts").addDocument(data: ["userID": user.uid,
-                                                        "url": url,
-                                                        "champion1": uploadData.champion1,
-                                                        "champion1Votes": 0,
-                                                        "champion1VotesUsers": [],
-                                                        "champion2": uploadData.champion2,
-                                                        "champion2Votes": 0,
-                                                        "champion2VotesUsers": [],
-                                                        "text": uploadData.text,
-                                                        "date": Date().timeIntervalSince1970])
-        
-        
-        dismiss(animated: true, completion: nil)
-    }
+
 }
 
-extension UploadViewController : UITableViewDataSource, UITableViewDelegate, UITextViewDelegate {
+extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 4
@@ -103,50 +112,100 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate, UIT
         let uploadcell = tableView.dequeueReusableCell(withIdentifier: "uploadcell", for: indexPath) as! UploadCell
         uploadcell.selectionStyle = .none
         uploadcell.textView.tag = indexPath.row
-        uploadcell.textView.delegate = self
+        //uploadcell.textView.delegate = self
+        guard let viewModel = self.viewModel else { return uploadcell }
         
         switch uploadcell.textView.tag {
         case 0:
             uploadcell.textView.placeholder = "유튜브 URL('일부 공개'로 업로드시, 유튜브에 노출되지 않습니다.)"
             uploadcell.textView.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
+            uploadcell.textView.rx.didChange
+                .withLatestFrom(viewModel.writtenPost)
+                .subscribe(onNext: { (written) in
+                    var newWritten = written
+                    newWritten.url = uploadcell.textView.text
+                    viewModel.writePost.onNext(newWritten)
+                })
+                .disposed(by: disposeBag)
         case 1:
             uploadcell.textView.placeholder = "작성자 챔피언."
+            uploadcell.textView.rx.didChange
+                .withLatestFrom(viewModel.writtenPost)
+                .subscribe(onNext: { (written) in
+                    var newWritten = written
+                    newWritten.champion1 = uploadcell.textView.text
+                    viewModel.writePost.onNext(newWritten)
+                })
+                .disposed(by: disposeBag)
         case 2:
             uploadcell.textView.placeholder = "상대방 챔피언."
+            uploadcell.textView.rx.didChange
+                .withLatestFrom(viewModel.writtenPost)
+                .subscribe(onNext: { (written) in
+                    var newWritten = written
+                    newWritten.champion2 = uploadcell.textView.text
+                    viewModel.writePost.onNext(newWritten)
+                })
+                .disposed(by: disposeBag)
         case 3:
             uploadcell.textView.placeholder = "당시 상황에 대해 자세히 적어주세요."
             uploadcell.blankView.heightAnchor.constraint(equalToConstant: view.frame.height * 0.6).isActive = true
+            uploadcell.textView.rx.didChange
+                .withLatestFrom(viewModel.writtenPost)
+                .subscribe(onNext: { (written) in
+                    var newWritten = written
+                    newWritten.text = uploadcell.textView.text
+                    viewModel.writePost.onNext(newWritten)
+                })
+                .disposed(by: disposeBag)
         default:
             break
         }
+        
+        uploadcell.textView.rx.didChange
+            .asDriver()
+            .drive(onNext: { [weak self] in
+                guard let self = self else { return }
+                let size = self.uploadTableView.bounds.size
+                let newSize = self.uploadTableView.sizeThatFits(CGSize(width: size.width,
+                                                            height: CGFloat.greatestFiniteMagnitude))
+                if size.height != newSize.height {
+                    UIView.setAnimationsEnabled(false)
+                    self.uploadTableView.beginUpdates()
+                    self.uploadTableView.endUpdates()
+                    UIView.setAnimationsEnabled(true)
+                }
+            })
+            .disposed(by: disposeBag)
+        
         return uploadcell
     }
     
-    func textViewDidChange(_ textView: UITextView) {
-        switch textView.tag {
-        case 0:
-            uploadData.url = textView.text
-        case 1:
-            uploadData.champion1 = textView.text
-        case 2:
-            uploadData.champion2 = textView.text
-        case 3:
-            uploadData.text = textView.text
-        default:
-            break
-        }
-
-        let size = uploadTableView.bounds.size
-        let newSize = uploadTableView.sizeThatFits(CGSize(width: size.width,
-                                                    height: CGFloat.greatestFiniteMagnitude))
-        if size.height != newSize.height {
-            UIView.setAnimationsEnabled(false)
-            uploadTableView.beginUpdates()
-            uploadTableView.endUpdates()
-            UIView.setAnimationsEnabled(true)
-        }
-       
-    }
+//    func textViewDidChange(_ textView: UITextView) {
+//        switch textView.tag {
+//        case 0:
+//            uploadData.url = textView.text
+//        case 1:
+//            uploadData.champion1 = textView.text
+//        case 2:
+//            uploadData.champion2 = textView.text
+//        case 3:
+//            uploadData.text = textView.text
+//        default:
+//            break
+//        }
+//
+//        let size = uploadTableView.bounds.size
+//        let newSize = uploadTableView.sizeThatFits(CGSize(width: size.width,
+//                                                    height: CGFloat.greatestFiniteMagnitude))
+//        if size.height != newSize.height {
+//            UIView.setAnimationsEnabled(false)
+//            uploadTableView.beginUpdates()
+//            uploadTableView.endUpdates()
+//            UIView.setAnimationsEnabled(true)
+//        }
+//
+//    }
 }
 
 

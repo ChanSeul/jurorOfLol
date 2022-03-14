@@ -70,13 +70,13 @@ class HomeViewModel: HomeViewModelType {
                 
         changeNumberofVotes = changingNumberofVotes.asObserver()
                 
-        changingNumberofVotes
-            .subscribe(onNext: { (row, updateType) in
-                var newPosts = posts.value
-                newPosts[row].changeNumberOfVotes(updateType: updateType)
-                posts.accept(newPosts)
-            })
-            .disposed(by: disposeBag)
+//        changingNumberofVotes
+//            .subscribe(onNext: { (row, updateType) in
+//                var newPosts = posts.value
+//                newPosts[row].changeNumberOfVotes(updateType: updateType)
+//                posts.accept(newPosts)
+//            })
+//            .disposed(by: disposeBag)
         
  
         
