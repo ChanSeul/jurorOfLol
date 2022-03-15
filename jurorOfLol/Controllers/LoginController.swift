@@ -224,10 +224,10 @@ extension LoginController: ASAuthorizationControllerDelegate {
                 if let user = authDataResult?.user {
                     print("Nice! You're now signed in as \(user.uid), email: \(user.email ?? "unknwon")")
                     let db = Firestore.firestore()
-                    let docRef = db.collection("users").document(user.uid)
+                    let docRef = db.collection("voteDataByUsers").document(user.uid)
                     docRef.getDocument { document, error in
                         if let document = document, document.exists == false {
-                            docRef.setData(["userId": user.uid]) { err in
+                            docRef.setData(["voteData": []]) { err in
                                 if let err = err {
                                     print("User Id Setting error occured")
                                 }
