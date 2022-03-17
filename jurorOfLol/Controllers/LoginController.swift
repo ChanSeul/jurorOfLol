@@ -19,7 +19,7 @@ import RxRelay
 import simd
 
 //protocol LoginControllerDelegate {
-//    func fetchVoteInfo(userId: String)
+//    func refresh()
 //}
 // Unhashed nonce.
 fileprivate var currentNonce: String?
@@ -227,7 +227,7 @@ extension LoginController: ASAuthorizationControllerDelegate {
                     let docRef = db.collection("voteDataByUsers").document(user.uid)
                     docRef.getDocument { document, error in
                         if let document = document, document.exists == false {
-                            docRef.setData(["voteData": []]) { err in
+                            docRef.setData(["userId": user.uid]) { err in
                                 if let err = err {
                                     print("User Id Setting error occured")
                                 }

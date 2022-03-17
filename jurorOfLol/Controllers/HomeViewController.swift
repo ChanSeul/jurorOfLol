@@ -16,6 +16,7 @@ class HomeViewController: UIViewController {
     let viewModel: HomeViewModelType
     var disposeBag = DisposeBag()
     
+    
     init(viewModel: HomeViewModelType = HomeViewModel()) {
         self.viewModel = viewModel
         //LoginController.shared.delegate = self
@@ -102,15 +103,6 @@ class HomeViewController: UIViewController {
             }
             .disposed(by: disposeBag)
         
-//        viewModel.allPosts
-//            .asDriver() { _ in .never()}
-//            .drive(onNext: { post in
-//
-//                timeLineTableView.rx.items(cellIdentifier: HomeTableViewCell.identifier, cellType: HomeTableViewCell.self) { [weak self]
-//                    row, item, cell in
-//
-//                }
-//            })
         
         //MARK: Error handling
         
@@ -229,8 +221,24 @@ extension HomeViewController: HomeTableViewCellDelegate {
         LoginController.shared.modalPresentationStyle = .overCurrentContext
         self.present(LoginController.shared, animated: false, completion: nil)
     }
-    func changeVotes(row: Int, updateType: voteUpdateType) {
-        viewModel.changeNumberofVotes.onNext((row: row, updateType: updateType))
+    
+    func showEditModal() {
+        <#code#>
+    }
+}
+
+extension HomeViewController: SettingsControllerDelegate {
+    func refresh() {
+        Observable<Void>.of(())
+            .take(1)
+            .do(onNext: { [weak self] in
+                self?.viewModel.clearPosts.onNext(())
+            })
+            .subscribe(onNext: { [weak self] in
+                print("111111111")
+                self?.viewModel.fetchPosts.onNext(())
+            })
+            .disposed(by: disposeBag)
     }
 }
 

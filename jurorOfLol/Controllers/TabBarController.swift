@@ -29,7 +29,7 @@ class TabBarController : UITabBarController {
         let timeLine = HomeViewController()
         //let rank = HomeViewController()
         let myOptions = SettingsController()
-        
+        myOptions.delegate = timeLine
         
         timeLine.title = "홈"
         //rank.title = "탐색"

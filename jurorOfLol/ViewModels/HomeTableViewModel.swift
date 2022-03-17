@@ -13,7 +13,6 @@ import Firebase
 
 protocol HomeViewModelType {
     var fetchPosts: AnyObserver<Void> { get }
-    var changeNumberofVotes: AnyObserver<(row: Int, updateType: voteUpdateType)> { get }
     var clearPosts: AnyObserver<Void> { get }
     //var refetchPosts: AnyObserver<(row: Int, docId: String)> { get }
     
@@ -28,7 +27,6 @@ class HomeViewModel: HomeViewModelType {
     
     // INPUT
     let fetchPosts: AnyObserver<Void>
-    let changeNumberofVotes: AnyObserver<(row: Int, updateType: voteUpdateType)>
     let clearPosts: AnyObserver<Void>
     //let refetchPosts: AnyObserver<(row: Int, docId: String)>
     
@@ -40,7 +38,6 @@ class HomeViewModel: HomeViewModelType {
     
     init(fireBaseService: FirebaseServiceProtocol = FireBaseService()) {
         let fetchingPosts = PublishSubject<Void>()
-        let changingNumberofVotes = PublishSubject<(row: Int, updateType: voteUpdateType)>()
         let clearing = PublishSubject<Void>()
         //let refetching = PublishSubject<(row: Int, docId: String)>()
         let activating = BehaviorSubject<Bool>(value: false)
@@ -68,18 +65,6 @@ class HomeViewModel: HomeViewModelType {
             })
             .disposed(by: disposeBag)
                 
-        changeNumberofVotes = changingNumberofVotes.asObserver()
-                
-//        changingNumberofVotes
-//            .subscribe(onNext: { (row, updateType) in
-//                var newPosts = posts.value
-//                newPosts[row].changeNumberOfVotes(updateType: updateType)
-//                posts.accept(newPosts)
-//            })
-//            .disposed(by: disposeBag)
-        
- 
-        
         clearPosts = clearing.asObserver()
         
         clearing
@@ -88,24 +73,12 @@ class HomeViewModel: HomeViewModelType {
             })
             .disposed(by: disposeBag)
         
-        
-//        refetchPosts = refetching.asObserver()
-//
-//        refetching
-//            .subscribe(onNext: { (row, docId) in
-//                fireBaseService.refetchData(docId: docId)
-//            })
-//            .disposed(by: disposeBag)
     
         // OUTPUT
         
         activated = activating.distinctUntilChanged()
         errorMessage = error.map { $0 as NSError }
         allPosts = posts.asObservable()
-        
-        
-        
-        
         
     }
 }

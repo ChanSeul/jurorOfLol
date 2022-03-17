@@ -12,6 +12,9 @@ import RxRelay
 import RxSwift
 import Firebase
 
+protocol SettingsControllerDelegate {
+    func refresh()
+}
 
 class SettingsController: UIViewController {
     let disposeBag = DisposeBag()
@@ -22,8 +25,15 @@ class SettingsController: UIViewController {
     
     let currentSections = BehaviorRelay<[Section]>(value: [])
     
+    var delegate: SettingsControllerDelegate?
+    
     init() {
         super.init(nibName: nil, bundle: nil)
+        LoginViewModel.shared.isLogin
+            .subscribe(onNext: { [weak self] _ in
+                self?.delegate?.refresh()
+            })
+            .disposed(by: disposeBag)
     }
     
     required init?(coder: NSCoder) {
@@ -36,6 +46,7 @@ class SettingsController: UIViewController {
         settingsTableView.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
         settingsTableView.register(StaticSettingTableViewCell.self, forCellReuseIdentifier: StaticSettingTableViewCell.identifier)
         settingsTableView.register(SwitchSettingTableViewCell.self, forCellReuseIdentifier: SwitchSettingTableViewCell.identifier)
+//        settingsTableView.tableHeaderView?.backgroundColor = .green
         settingsTableView.rx.setDelegate(self)
             .disposed(by: disposeBag)
         return settingsTableView
@@ -138,7 +149,8 @@ class SettingsController: UIViewController {
             do {
                 try firebaseAuth.signOut()
             } catch let signOutError as NSError {
-              print("Error signing out: %@", signOutError)
+                print("Error signing out: %@", signOutError)
+                return
             }
             LoginViewModel.shared.isLogin.accept(false)
         })
@@ -156,9 +168,7 @@ extension SettingsController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if section == 1 {
-            return 30
-        }
+        
         return 120
     }
     

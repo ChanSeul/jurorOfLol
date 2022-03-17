@@ -40,11 +40,14 @@ class UploadViewModel: UploadViewModelType{
                 guard let user = Auth.auth().currentUser else { return }
                 let db = Firestore.firestore()
                 let docRef = db.collection("posts").addDocument(data: ["userID": user.uid,
-                                                          "url": currentWrittenPost.url.youTubeId,
-                                                          "champion1": currentWrittenPost.champion1,
-                                                          "champion2": currentWrittenPost.champion2,
-                                                          "text": currentWrittenPost.text,
-                                                          "date": Date().timeIntervalSince1970])
+                                                                       "url": currentWrittenPost.url.youTubeId!,
+                                                                       "champion1": currentWrittenPost.champion1,
+                                                                       "champion2": currentWrittenPost.champion2,
+                                                                       "champion1Votes": 0,
+                                                                       "champion2Votes": 0,
+                                                                       "text": currentWrittenPost.text,
+                                                                       "date": Date().timeIntervalSince1970])
+                
                 uploadingVoteData.onNext(docRef.documentID)
             })
             .disposed(by: disposeBag)
@@ -54,9 +57,12 @@ class UploadViewModel: UploadViewModelType{
                 let db = Firestore.firestore()
                 db.collection("userSetForVoteByPost").document(docId).setData(["champion1VotesUsers": [],
                                                                                "champion2VotesUsers": []])
-                
-                db.collection("voteDataByPost").document(docId).setData(["champion1Votes": 0,
-                                                                         "champion2Votes": 0])
+//                guard let user = Auth.auth().currentUser else { return }
+//                var initial = [String:Any]()
+//                initial["voteData."+docId] = 0
+//                db.collection("voteDataByUsers").document(user.uid).setData(["voteData": nil])
+//                db.collection("voteDataByPost").document(docId).setData(["champion1Votes": 0,
+//                                                                         "champion2Votes": 0])
             })
             .disposed(by: disposeBag)
         
