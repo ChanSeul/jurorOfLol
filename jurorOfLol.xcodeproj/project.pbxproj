@@ -24,7 +24,7 @@
 		D8AD5ECC27CD31330002CB7A /* HomeTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5ECB27CD31330002CB7A /* HomeTableViewCell.swift */; };
 		D8AD5ECE27CD314A0002CB7A /* PollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5ECD27CD314A0002CB7A /* PollView.swift */; };
 		D8AD5ED027CD31630002CB7A /* UploadCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5ECF27CD31630002CB7A /* UploadCell.swift */; };
-		D8AD5ED227CD31830002CB7A /* HomeTableViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5ED127CD31830002CB7A /* HomeTableViewModel.swift */; };
+		D8AD5ED227CD31830002CB7A /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5ED127CD31830002CB7A /* HomeViewModel.swift */; };
 		D8AD5ED427CD31900002CB7A /* PostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5ED327CD31900002CB7A /* PostViewModel.swift */; };
 		D8AD5ED627CD31B10002CB7A /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5ED527CD31B10002CB7A /* HomeViewController.swift */; };
 		D8AD5ED827CD31D30002CB7A /* LoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5ED727CD31D30002CB7A /* LoginController.swift */; };
@@ -57,7 +57,7 @@
 		D8AD5ECB27CD31330002CB7A /* HomeTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTableViewCell.swift; sourceTree = "<group>"; };
 		D8AD5ECD27CD314A0002CB7A /* PollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollView.swift; sourceTree = "<group>"; };
 		D8AD5ECF27CD31630002CB7A /* UploadCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadCell.swift; sourceTree = "<group>"; };
-		D8AD5ED127CD31830002CB7A /* HomeTableViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTableViewModel.swift; sourceTree = "<group>"; };
+		D8AD5ED127CD31830002CB7A /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		D8AD5ED327CD31900002CB7A /* PostViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewModel.swift; sourceTree = "<group>"; };
 		D8AD5ED527CD31B10002CB7A /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		D8AD5ED727CD31D30002CB7A /* LoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginController.swift; sourceTree = "<group>"; };
@@ -153,7 +153,7 @@
 		D8AD5EC027CD305E0002CB7A /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				D8AD5ED127CD31830002CB7A /* HomeTableViewModel.swift */,
+				D8AD5ED127CD31830002CB7A /* HomeViewModel.swift */,
 				D8F322C527D06F68005BEA5D /* LoginViewModel.swift */,
 				D8F322C727D08106005BEA5D /* SectionViewModel.swift */,
 				D8328AAD27D3C15D00A53455 /* HomeTableViewCellViewModel.swift */,
@@ -324,7 +324,7 @@
 				D8AD5ECE27CD314A0002CB7A /* PollView.swift in Sources */,
 				D83E484827CEB45300549FA3 /* SettingsController.swift in Sources */,
 				D8AD5EAC27CD2F450002CB7A /* AppDelegate.swift in Sources */,
-				D8AD5ED227CD31830002CB7A /* HomeTableViewModel.swift in Sources */,
+				D8AD5ED227CD31830002CB7A /* HomeViewModel.swift in Sources */,
 				D8F322C827D08106005BEA5D /* SectionViewModel.swift in Sources */,
 				D85BCBF727DF61D70000D486 /* UploadViewModel.swift in Sources */,
 				D8328AAE27D3C15D00A53455 /* HomeTableViewCellViewModel.swift in Sources */,

@@ -12,8 +12,7 @@ import RxSwift
 protocol FirebaseServiceProtocol {
     func fetchPostsRx(startIdx: Int) -> Observable<[post]>
     func fetchPosts(startIdx: Int, completion: @escaping (Result<[post], Error>) -> Void)
-    //func fetchVoteInfo(userId: String) -> Observable<User>
-    //func refetchData(docId: String) -> Observable<post>
+    func deletePost(docId: String, completion: @escaping () -> Void)
 }
 
 class FireBaseService: FirebaseServiceProtocol {
@@ -68,6 +67,9 @@ class FireBaseService: FirebaseServiceProtocol {
                         guard let date = document.data()["date"] as? Double else {
                             continue
                         }
+                        guard let uid = document.data()["userID"] as? String else {
+                            continue
+                        }
                         nextPosts.append(post(url: url,
                                               champion1: champion1,
                                               champion2: champion2,
@@ -75,7 +77,8 @@ class FireBaseService: FirebaseServiceProtocol {
                                               champion2Votes: champion2Votes,
                                               text: text,
                                               date: formatter.string(from: Date(timeIntervalSince1970: date)),
-                                              docId: document.documentID
+                                              docId: document.documentID,
+                                              userId: uid
                                              )
                         )
                     }
@@ -127,7 +130,9 @@ class FireBaseService: FirebaseServiceProtocol {
                             guard let date = document.data()["date"] as? Double else {
                                 continue
                             }
-                            
+                            guard let uid = document.data()["userID"] as? String else {
+                                continue
+                            }
                             nextPosts.append(post(url: url,
                                                   champion1: champion1,
                                                   champion2: champion2,
@@ -135,7 +140,8 @@ class FireBaseService: FirebaseServiceProtocol {
                                                   champion2Votes: champion2Votes,
                                                   text: text,
                                                   date: formatter.string(from: Date(timeIntervalSince1970: date)),
-                                                  docId: document.documentID
+                                                  docId: document.documentID,
+                                                  userId: uid
                                                  )
                             )
                         }
@@ -146,64 +152,34 @@ class FireBaseService: FirebaseServiceProtocol {
             
         }
     }
-//    func fetchVoteInfo(userId: String) -> Observable<User> {
-//        let db = Firestore.firestore()
-//        let docRef = db.collection("users").document(userId)
-//        return Observable.create { (observer) -> Disposable in
-//            docRef.getDocument() { document, error in
-//                if let document = document, document.exists {
-//                    if let voteInfo = document.get("voteInfo") as? [String: Int] {
-//                        let fetched = User(voteInfo: voteInfo)
-//                        observer.onNext(fetched)
-//                    }
-//                }
-//                if let error = error {
-//                    print("Getting document error occured in fetchVoteInfo, FirebaseServices.swift")
-//                    observer.onError(error)
-//                }
-//                observer.onCompleted()
-//            }
-//            return Disposables.create()
-//        }
-//    }
-//    func refetchData(docId: String) -> Observable<post> {
-//        let formatter = DateFormatter()
-//        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-//
-//        return Observable.create { (observer) -> Disposable in
-//            let db = Firestore.firestore()
-//            let docRef = db.collection("posts").document(docId)
-//            docRef.getDocument() { document, error in
-//                if let document = document, document.exists {
-//                    guard let url = document.get("url") as? String else { return print("firebaseService refetchData error in url"); }
-//                    guard let champion1 = document.get("champion1") as? String else { return print("firebaseService refetchData error in champion1"); }
-//                    guard let champion1Votes = document.get("champion1Votes") as? Double else { return print("firebaseService refetchData error in champion1Votes"); }
-//                    guard let champion2 = document.get("champion2") as? String else { return print("firebaseService refetchData error in champion2"); }
-//                    guard let champion2Votes = document.get("champion2Votes") as? Double else { return print("firebaseService refetchData error in champion2Votes"); }
-//                    guard let text = document.get("text") as? String else { return print("firebaseService refetchData error in text"); }
-//                    guard let date = document.get("date") as? Double else { return print("firebaseService refetchData error in date"); }
-//
-//                    observer.onNext(post(url: url,
-//                                         champion1: champion1,
-//                                         champion1Votes: champion1Votes,
-//                                         champion2: champion2,
-//                                         champion2Votes: champion2Votes,
-//                                         text: text,
-//                                         date: formatter.string(from: Date(timeIntervalSince1970: date)),
-//                                         docId: document.documentID
-//                                        )
-//                                    )
-//                }
-//                if let error = error {
-//                    print("Getting document error occured in fetchingUserInfo")
-//                    observer.onError(error)
-//                }
-//                observer.onCompleted()
-//            }
-//            return Disposables.create()
-//        }
-//
-//    }
+    
+    func deletePost(docId: String, completion: @escaping () -> Void) {
+        let db = Firestore.firestore()
+        Task {
+            let result = await withTaskGroup(of: Void.self, body: { taskGroup in
+                taskGroup.addTask {
+                    let docRef = db.collection("posts").document(docId)
+                    docRef.delete() { (error) in
+                        if let error = error {
+                            print("Delete Post error occured")
+                            return
+                        }
+                    }
+                }
+                taskGroup.addTask {
+                    let docRef = db.collection("userSetForVoteByPost").document(docId)
+                    docRef.delete() { (error) in
+                        if let error = error {
+                            print("Delete Post error occured")
+                            return
+                        }
+                    }
+                }
+            })
+            completion()
+        }
+    }
+
     
 }
 

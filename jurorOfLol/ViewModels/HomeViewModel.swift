@@ -14,7 +14,7 @@ import Firebase
 protocol HomeViewModelType {
     var fetchPosts: AnyObserver<Void> { get }
     var clearPosts: AnyObserver<Void> { get }
-    //var refetchPosts: AnyObserver<(row: Int, docId: String)> { get }
+    var deletePost: AnyObserver<String> { get }
     
     var activated: Observable<Bool> { get }
     var errorMessage: Observable<NSError> { get }
@@ -28,7 +28,7 @@ class HomeViewModel: HomeViewModelType {
     // INPUT
     let fetchPosts: AnyObserver<Void>
     let clearPosts: AnyObserver<Void>
-    //let refetchPosts: AnyObserver<(row: Int, docId: String)>
+    let deletePost: AnyObserver<String>
     
     // OUTPUT
     let activated: Observable<Bool>
@@ -39,7 +39,7 @@ class HomeViewModel: HomeViewModelType {
     init(fireBaseService: FirebaseServiceProtocol = FireBaseService()) {
         let fetchingPosts = PublishSubject<Void>()
         let clearing = PublishSubject<Void>()
-        //let refetching = PublishSubject<(row: Int, docId: String)>()
+        let deletingPost = PublishSubject<String>()
         let activating = BehaviorSubject<Bool>(value: false)
         let error = PublishSubject<Error>()
         let posts = BehaviorRelay<[ViewPost]>(value: [])
@@ -73,6 +73,18 @@ class HomeViewModel: HomeViewModelType {
             })
             .disposed(by: disposeBag)
         
+        deletePost = deletingPost.asObserver()
+                
+        deletingPost
+            .subscribe(onNext: { (docId) in
+                fireBaseService.deletePost(docId: docId) {
+                    DispatchQueue.global().sync {
+                        clearing.onNext(())
+                    }
+                    fetchingPosts.onNext(())
+                }
+            })
+            .disposed(by: disposeBag)
     
         // OUTPUT
         

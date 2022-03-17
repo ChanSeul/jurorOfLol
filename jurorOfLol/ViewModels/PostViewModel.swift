@@ -27,6 +27,7 @@ struct ViewPost {
     var text: String
     var date: String
     var docId: String
+    var userId: String
     
     init(post:post) {
         self.url = post.url
@@ -37,6 +38,7 @@ struct ViewPost {
         self.text = post.text
         self.date = post.date
         self.docId = post.docId
+        self.userId = post.userId
     }
 
 }

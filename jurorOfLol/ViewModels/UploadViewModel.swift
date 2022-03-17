@@ -29,7 +29,7 @@ class UploadViewModel: UploadViewModelType{
         let uploadingPost = PublishSubject<Void>()
         let uploadingVoteData = PublishSubject<String>()
         let writtingPost = PublishSubject<post>()
-        let currentWrittenPost = BehaviorSubject<post>(value: post(url: "", champion1: "", champion2: "", text: "", date: "", docId: ""))
+        let currentWrittenPost = BehaviorSubject<post>(value: post(url: "", champion1: "", champion2: "", text: "", date: "", docId: "", userId: ""))
         
         //INPUT
         uploadPost = uploadingPost.asObserver()

@@ -222,8 +222,20 @@ extension HomeViewController: HomeTableViewCellDelegate {
         self.present(LoginController.shared, animated: false, completion: nil)
     }
     
-    func showEditModal() {
-        <#code#>
+    func showEditModal(docId: String, userId: String) {
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "취소", style: .cancel))
+        if let user = Auth.auth().currentUser {
+            if user.uid == userId {
+                actionSheet.addAction(UIAlertAction(title: "수정", style: .destructive) { _ in
+                    
+                })
+                actionSheet.addAction(UIAlertAction(title: "삭제", style: .destructive) { [weak self] _ in
+                    self?.viewModel.deletePost.onNext(docId)
+                })
+            }
+        }
+        present(actionSheet, animated: true, completion: nil)
     }
 }
 
@@ -235,7 +247,6 @@ extension HomeViewController: SettingsControllerDelegate {
                 self?.viewModel.clearPosts.onNext(())
             })
             .subscribe(onNext: { [weak self] in
-                print("111111111")
                 self?.viewModel.fetchPosts.onNext(())
             })
             .disposed(by: disposeBag)

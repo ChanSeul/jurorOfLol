@@ -16,7 +16,7 @@ import Firebase
 
 protocol HomeTableViewCellDelegate {
     func presentLoginModal()
-    func showEditModal()
+    func showEditModal(docId: String, userId: String)
 }
 
 class HomeTableViewCell: UITableViewCell {
@@ -99,9 +99,12 @@ class HomeTableViewCell: UITableViewCell {
         
         editBtn.rx.tapGesture()
             .when(.ended)
-            .asDriver{ _ in .never() }
-            .drive(onNext: { [weak self] _ in
-                self?.delegate?.showEditModal()
+//            .asDriver{ _ in .never() }
+            .withLatestFrom(data)
+            .subscribe(onNext: { [weak self] currentPost in
+                DispatchQueue.main.async {
+                    self?.delegate?.showEditModal(docId: currentPost.docId, userId: currentPost.userId)
+                }
             })
             .disposed(by: disposeBag)
 
