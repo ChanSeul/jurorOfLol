@@ -12,7 +12,8 @@ import RxCocoa
 import Firebase
 
 protocol HomeViewModelType {
-    var fetchPosts: AnyObserver<Void> { get }
+    var fetchInitial: AnyObserver<Void> { get }
+    var fetchNext: AnyObserver<Void> { get }
     var clearPosts: AnyObserver<Void> { get }
     var deletePost: AnyObserver<String> { get }
     
@@ -26,7 +27,8 @@ class HomeViewModel: HomeViewModelType {
     let disposeBag = DisposeBag()
     
     // INPUT
-    let fetchPosts: AnyObserver<Void>
+    let fetchInitial: AnyObserver<Void>
+    let fetchNext: AnyObserver<Void>
     let clearPosts: AnyObserver<Void>
     let deletePost: AnyObserver<String>
     
@@ -37,7 +39,8 @@ class HomeViewModel: HomeViewModelType {
     
     
     init(fireBaseService: FirebaseServiceProtocol = FireBaseService()) {
-        let fetchingPosts = PublishSubject<Void>()
+        let fetchingInitial = PublishSubject<Void>()
+        let fetchingNext = PublishSubject<Void>()
         let clearing = PublishSubject<Void>()
         let deletingPost = PublishSubject<String>()
         let activating = BehaviorSubject<Bool>(value: false)
@@ -47,15 +50,25 @@ class HomeViewModel: HomeViewModelType {
         
         
         // INPUT
+        fetchInitial = fetchingInitial.asObserver()
         
-        fetchPosts = fetchingPosts.asObserver()
-        
-        fetchingPosts
+        fetchingInitial
             .do(onNext: { _ in activating.onNext(true) })
-            .withLatestFrom(posts)
-            .map { $0.count }
-            .flatMap{ (count) -> Observable<[post]> in
-                    fireBaseService.fetchPostsRx(startIdx: count) }
+            .flatMap{ fireBaseService.fetchInitialRx() }
+            .map { $0.map { ViewPost(post: $0) } }
+            .do(onNext: { _ in activating.onNext(false) })
+            .do(onError: { err in error.onNext(err) })
+            .subscribe(onNext: { (initialPosts) in
+                if posts.value.count != 0 { return }
+                posts.accept(initialPosts)
+            })
+            .disposed(by: disposeBag)
+        
+        fetchNext = fetchingNext.asObserver()
+        
+        fetchingNext
+            .do(onNext: { _ in activating.onNext(true) })
+            .flatMap{ fireBaseService.fetchNextRx() }
             .map { $0.map { ViewPost(post: $0) } }
             .do(onNext: { _ in activating.onNext(false) })
             .do(onError: { err in error.onNext(err) })
@@ -81,7 +94,7 @@ class HomeViewModel: HomeViewModelType {
                     DispatchQueue.global().sync {
                         clearing.onNext(())
                     }
-                    fetchingPosts.onNext(())
+                    fetchingInitial.onNext(())
                 }
             })
             .disposed(by: disposeBag)

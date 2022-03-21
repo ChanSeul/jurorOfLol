@@ -12,8 +12,8 @@ import FirebaseFirestore
 
 protocol UploadViewModelType {
     var uploadPost: AnyObserver<Void> { get }
+    var editPost: AnyObserver<String> { get }
     var writePost: AnyObserver<post> { get }
-    
     var writtenPost: Observable<post> { get }
 }
 
@@ -21,6 +21,7 @@ class UploadViewModel: UploadViewModelType{
     var disposeBag = DisposeBag()
     
     let uploadPost: AnyObserver<Void>
+    let editPost: AnyObserver<String>
     let writePost: AnyObserver<post>
     
     let writtenPost: Observable<post>
@@ -28,6 +29,7 @@ class UploadViewModel: UploadViewModelType{
     init() {
         let uploadingPost = PublishSubject<Void>()
         let uploadingVoteData = PublishSubject<String>()
+        let editingPost = PublishSubject<String>()
         let writtingPost = PublishSubject<post>()
         let currentWrittenPost = BehaviorSubject<post>(value: post(url: "", champion1: "", champion2: "", text: "", date: "", docId: "", userId: ""))
         
@@ -63,6 +65,24 @@ class UploadViewModel: UploadViewModelType{
 //                db.collection("voteDataByUsers").document(user.uid).setData(["voteData": nil])
 //                db.collection("voteDataByPost").document(docId).setData(["champion1Votes": 0,
 //                                                                         "champion2Votes": 0])
+            })
+            .disposed(by: disposeBag)
+        
+        editPost = editingPost.asObserver()
+        
+        editingPost
+            .withLatestFrom(currentWrittenPost) { ($0, $1) }
+            .subscribe(onNext: { (docId, currentWrittenPost) in
+                let db = Firestore.firestore()
+                let docRef = db.collection("posts").document(docId)
+                var update = [String: Any]()
+                update["url"] = currentWrittenPost.url.youTubeId!
+                update["champion1"] = currentWrittenPost.champion1
+                update["champion2"] = currentWrittenPost.champion2
+                update["text"] = currentWrittenPost.text
+                docRef.updateData(update) { error in
+                    if let _ = error { print("Editng post error occured") }
+                }
             })
             .disposed(by: disposeBag)
         

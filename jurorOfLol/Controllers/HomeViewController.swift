@@ -43,9 +43,8 @@ class HomeViewController: UIViewController {
         rx.viewWillAppear
             .take(1)
             .subscribe(onNext: { [weak self] _ in
-                self?.viewModel.fetchPosts.onNext(())
+                self?.viewModel.fetchInitial.onNext(())
             })
-            //.bind(to: viewModel.fetchPosts) <-- 이건 왜 안될까?
             .disposed(by: disposeBag)
         
         //MARK: Refresh loading
@@ -57,7 +56,7 @@ class HomeViewController: UIViewController {
                 self?.viewModel.clearPosts.onNext(())
             })
             .subscribe(onNext: { [weak self] in
-                self?.viewModel.fetchPosts.onNext(())
+                self?.viewModel.fetchInitial.onNext(())
             })
             .disposed(by: disposeBag)
         
@@ -82,7 +81,7 @@ class HomeViewController: UIViewController {
                     guard let self = self else { return }
                     let position = self.timeLineTableView.contentOffset.y
                     if position > self.timeLineTableView.contentSize.height - 100 - self.timeLineTableView.frame.size.height {
-                        self.viewModel.fetchPosts.onNext(())
+                        self.viewModel.fetchNext.onNext(())
                     }
                 }
             })
@@ -144,7 +143,7 @@ class HomeViewController: UIViewController {
         let searchButton = UIButton()
         searchButton.translatesAutoresizingMaskIntoConstraints = false
         searchButton.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
-        searchButton.setPreferredSymbolConfiguration(.init(pointSize: 30, weight: .regular, scale: .default), forImageIn: .normal)
+        searchButton.setPreferredSymbolConfiguration(.init(pointSize: 30, weight: .thin, scale: .default), forImageIn: .normal)
         searchButton.tintColor = .white
         header.addSubview(searchButton)
         searchButton.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -10).isActive = true
@@ -166,7 +165,7 @@ class HomeViewController: UIViewController {
     let btn: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(systemName: "plus.circle.fill"), for: .normal)
+        button.setImage(UIImage(systemName: "plus.circle.fill")?.applyingSymbolConfiguration(.init(weight: .thin)), for: .normal)
         button.setPreferredSymbolConfiguration(.init(pointSize: 50, weight: .regular, scale: .default), forImageIn: .normal)
         return button
     }()
@@ -203,7 +202,7 @@ class HomeViewController: UIViewController {
     @objc
     func buttonAction(_ sender:UIButton!) {
         if let _ = Auth.auth().currentUser {
-            let uploadModal = UploadViewController()
+            let uploadModal = UploadViewController(uploadType: .new)
             let navVC = UINavigationController(rootViewController: uploadModal)
             navVC.modalPresentationStyle = .fullScreen
             self.present(navVC, animated: true, completion: nil)
@@ -222,13 +221,17 @@ extension HomeViewController: HomeTableViewCellDelegate {
         self.present(LoginController.shared, animated: false, completion: nil)
     }
     
-    func showEditModal(docId: String, userId: String) {
+    func showEditModal(docId: String, userId: String, prepost: ViewPost) {
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: "취소", style: .cancel))
         if let user = Auth.auth().currentUser {
             if user.uid == userId {
-                actionSheet.addAction(UIAlertAction(title: "수정", style: .destructive) { _ in
-                    
+                actionSheet.addAction(UIAlertAction(title: "수정", style: .destructive) { [weak self] _ in
+                    let editModal = UploadViewController(uploadType: .edit, prepost: prepost)
+                    editModal.delegate = self
+                    let navVc = UINavigationController(rootViewController: editModal)
+                    navVc.modalPresentationStyle = .fullScreen
+                    self?.present(navVc, animated: true, completion: nil)
                 })
                 actionSheet.addAction(UIAlertAction(title: "삭제", style: .destructive) { [weak self] _ in
                     self?.viewModel.deletePost.onNext(docId)
@@ -239,7 +242,7 @@ extension HomeViewController: HomeTableViewCellDelegate {
     }
 }
 
-extension HomeViewController: SettingsControllerDelegate {
+extension HomeViewController: RefreshDelegate {
     func refresh() {
         Observable<Void>.of(())
             .take(1)
@@ -247,7 +250,7 @@ extension HomeViewController: SettingsControllerDelegate {
                 self?.viewModel.clearPosts.onNext(())
             })
             .subscribe(onNext: { [weak self] in
-                self?.viewModel.fetchPosts.onNext(())
+                self?.viewModel.fetchInitial.onNext(())
             })
             .disposed(by: disposeBag)
     }

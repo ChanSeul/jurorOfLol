@@ -40,6 +40,9 @@ struct ViewPost {
         self.docId = post.docId
         self.userId = post.userId
     }
-
+    
+    func ViewPostIntoUploadingPost(viewPost: ViewPost) -> post {
+        return post(url: "https://youtu.be/" + viewPost.url, champion1: viewPost.champion1, champion2: viewPost.champion2, champion1Votes: viewPost.champion1Votes, champion2Votes: viewPost.champion2Votes, text: viewPost.text, date: viewPost.date, docId: viewPost.docId, userId: viewPost.userId)
+    }
 }
 

@@ -39,12 +39,17 @@ class TabBarController : UITabBarController {
         
         guard let items = self.tabBar.items else { return }
  
-        items[0].image = UIImage(systemName: "house.fill")
-        items[1].image = UIImage(systemName: unselectedImages[1])
+//        if let img1 = UIImage(systemName: "house.fill").applyingSymbolConfiguration(.init(weight: .thin)) {
+//            items[0].image = img1
+//        }
+        items[0].image = UIImage(systemName: "house.fill")?.applyingSymbolConfiguration(.init(weight: .thin))
+        items[1].image = UIImage(systemName: unselectedImages[1])?.applyingSymbolConfiguration(.init(weight: .thin))
         //items[2].image = UIImage(systemName: unselectedImages[2])
         
         tabBar.unselectedItemTintColor = .white
-        tabBar.barTintColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        tabBar.barTintColor = UIColor(red: 0.03, green: 0.03, blue: 0.03, alpha: 1)
+//        tabBar.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+
         tabBar.tintColor = .white
         
         tabBar.addSubview(seperatorView)
@@ -61,8 +66,8 @@ class TabBarController : UITabBarController {
         
         for i in 0..<items.count {
             if item == items[i] {
-                items[itemIdx].image = UIImage(systemName: unselectedImages[itemIdx])
-                item.image = UIImage(systemName: unselectedImages[i] + ".fill")
+                items[itemIdx].image = UIImage(systemName: unselectedImages[itemIdx])?.applyingSymbolConfiguration(.init(weight: .thin))
+                item.image = UIImage(systemName: unselectedImages[i] + ".fill")?.applyingSymbolConfiguration(.init(weight: .thin))
                 itemIdx = i
             }
         }

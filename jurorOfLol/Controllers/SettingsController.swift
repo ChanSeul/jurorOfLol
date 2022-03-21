@@ -12,7 +12,7 @@ import RxRelay
 import RxSwift
 import Firebase
 
-protocol SettingsControllerDelegate {
+protocol RefreshDelegate {
     func refresh()
 }
 
@@ -25,7 +25,7 @@ class SettingsController: UIViewController {
     
     let currentSections = BehaviorRelay<[Section]>(value: [])
     
-    var delegate: SettingsControllerDelegate?
+    var delegate: RefreshDelegate?
     
     init() {
         super.init(nibName: nil, bundle: nil)

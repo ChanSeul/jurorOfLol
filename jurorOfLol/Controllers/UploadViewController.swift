@@ -13,12 +13,22 @@ import Firebase
 import RxSwift
 import RxCocoa
 
+enum UploadType: String {
+    case new
+    case edit
+}
+
 class UploadViewController: UIViewController {
     let viewModel: UploadViewModelType?
+    let uploadType: UploadType
+    let prepost: ViewPost?
+    var delegate: RefreshDelegate?
     var disposeBag = DisposeBag()
     
-    init(viewModel: UploadViewModelType = UploadViewModel()) {
+    init(viewModel: UploadViewModelType = UploadViewModel(), uploadType: UploadType, prepost: ViewPost? = nil) {
         self.viewModel = viewModel
+        self.uploadType = uploadType
+        self.prepost = prepost
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -29,6 +39,22 @@ class UploadViewController: UIViewController {
     override func viewDidLoad() {
         configureUI()
         bind()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        if uploadType == .edit {
+            if let urlCell = uploadTableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? UploadCell,
+               let champion1Cell = uploadTableView.cellForRow(at: IndexPath(row: 1, section: 0)) as? UploadCell,
+               let champion2Cell = uploadTableView.cellForRow(at: IndexPath(row: 2, section: 0)) as? UploadCell,
+               let mainTextCell = uploadTableView.cellForRow(at: IndexPath(row: 3, section: 0)) as? UploadCell,
+               let prepost = self.prepost {
+                urlCell.textView.text = "https://youtu.be/" + prepost.url
+                champion1Cell.textView.text = prepost.champion1
+                champion2Cell.textView.text = prepost.champion2
+                mainTextCell.textView.text = prepost.text
+                viewModel?.writePost.onNext(prepost.ViewPostIntoUploadingPost(viewPost: prepost))
+            }
+        }
     }
     
     //MARK: UI
@@ -86,9 +112,20 @@ class UploadViewController: UIViewController {
                 else if written.champion1 == "" { self?.showAlert("작성자의 챔피언을 입력하세요.", ""); return }
                 else if written.champion2 == "" { self?.showAlert("상대방의 챔피언을 입력하세요.", ""); return }
                 else if written.text == "" { self?.showAlert("본문을 작성해주세요.", ""); return }
-
-                self?.viewModel?.uploadPost.onNext(())
+                
+                switch self?.uploadType {
+                case .new:
+                    self?.viewModel?.uploadPost.onNext(())
+                case .edit:
+                    if let prepost = self?.prepost {
+                        self?.viewModel?.editPost.onNext((prepost.docId))
+                    }
+                case .none:
+                    return
+                }
+                
                 self?.dismiss(animated: true, completion: nil)
+                self?.delegate?.refresh()
                 
             })
             .disposed(by: disposeBag)
@@ -98,6 +135,8 @@ class UploadViewController: UIViewController {
                 self?.dismiss(animated: true, completion: nil)
             })
             .disposed(by: disposeBag)
+        
+        
     }
 
 }
@@ -180,32 +219,6 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
         
         return uploadcell
     }
-    
-//    func textViewDidChange(_ textView: UITextView) {
-//        switch textView.tag {
-//        case 0:
-//            uploadData.url = textView.text
-//        case 1:
-//            uploadData.champion1 = textView.text
-//        case 2:
-//            uploadData.champion2 = textView.text
-//        case 3:
-//            uploadData.text = textView.text
-//        default:
-//            break
-//        }
-//
-//        let size = uploadTableView.bounds.size
-//        let newSize = uploadTableView.sizeThatFits(CGSize(width: size.width,
-//                                                    height: CGFloat.greatestFiniteMagnitude))
-//        if size.height != newSize.height {
-//            UIView.setAnimationsEnabled(false)
-//            uploadTableView.beginUpdates()
-//            uploadTableView.endUpdates()
-//            UIView.setAnimationsEnabled(true)
-//        }
-//
-//    }
 }
 
 

@@ -64,6 +64,7 @@ class PollView: UIView {
     
     let championLabel: UILabel = {
         let championLabel = UILabel()
+        championLabel.font = UIFont.systemFont(ofSize: 14)
         championLabel.translatesAutoresizingMaskIntoConstraints = false
         championLabel.textColor = .systemGray
         //championLabel.text = "그레이브즈"
@@ -72,6 +73,7 @@ class PollView: UIView {
 
     let percentageLabel: UILabel = {
         let percentageLabel = UILabel()
+        percentageLabel.font = UIFont.systemFont(ofSize: 14)
         percentageLabel.translatesAutoresizingMaskIntoConstraints = false
         percentageLabel.textColor = .systemGray
         //percentageLabel.text = "36%"

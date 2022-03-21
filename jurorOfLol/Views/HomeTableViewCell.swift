@@ -16,7 +16,7 @@ import Firebase
 
 protocol HomeTableViewCellDelegate {
     func presentLoginModal()
-    func showEditModal(docId: String, userId: String)
+    func showEditModal(docId: String, userId: String, prepost: ViewPost)
 }
 
 class HomeTableViewCell: UITableViewCell {
@@ -103,7 +103,7 @@ class HomeTableViewCell: UITableViewCell {
             .withLatestFrom(data)
             .subscribe(onNext: { [weak self] currentPost in
                 DispatchQueue.main.async {
-                    self?.delegate?.showEditModal(docId: currentPost.docId, userId: currentPost.userId)
+                    self?.delegate?.showEditModal(docId: currentPost.docId, userId: currentPost.userId, prepost: currentPost)
                 }
             })
             .disposed(by: disposeBag)
@@ -367,7 +367,7 @@ class HomeTableViewCell: UITableViewCell {
             seperatorView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             seperatorView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             seperatorView.topAnchor.constraint(equalTo: poll2.bottomAnchor, constant: margin),
-            seperatorView.heightAnchor.constraint(equalToConstant: 0.25),
+            seperatorView.heightAnchor.constraint(equalToConstant: 1),
             seperatorView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
     }

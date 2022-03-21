@@ -33,4 +33,11 @@ extension UIViewController {
     
 }
 
+extension UIButton {
+    open override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        let margin: CGFloat = 20
+        let hitArea = self.bounds.insetBy(dx: -margin, dy: -margin)
+        return hitArea.contains(point)
+      }
+}
 
