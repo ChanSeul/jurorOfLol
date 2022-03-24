@@ -61,6 +61,14 @@ class SettingsController: UIViewController {
         configureUI()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: false)
+    }
     func bind() {
         LoginViewModel.shared.isLogin.asDriver()
             .drive(onNext: { [weak self] isLogin in
@@ -69,11 +77,14 @@ class SettingsController: UIViewController {
                         Section(title: "계정", items: [
                             .staticCell(model: SettingsStaticOption(title: "로그아웃") { [weak self] in
                                 self?.showLogoutAlert("알림", "정말 로그아웃 하시겠습니까?")
+                            }),
+                            .staticCell(model: SettingsStaticOption(title: "회원탈퇴") { [weak self] in
+                                
                             })
                         ]),
                         Section(title: "", items: [
-                            .staticCell(model: SettingsStaticOption(title: "내가 올린 글") {
-
+                            .staticCell(model: SettingsStaticOption(title: "내가 올린 글") { [weak self] in
+                                self?.navigationController?.pushViewController(MyPostsViewController(), animated: true)
                             })
                         ])])
                 }
@@ -81,7 +92,7 @@ class SettingsController: UIViewController {
                     self?.currentSections.accept([
                         Section(title: "계정", items: [
                             .staticCell(model: SettingsStaticOption(title: "로그인") { [weak self] in
-                                LoginController.shared.modalPresentationStyle = .overCurrentContext
+                                LoginController.shared.modalPresentationStyle = .overFullScreen
                                 self?.present(LoginController.shared, animated: false, completion: nil)
                             })
                         ])

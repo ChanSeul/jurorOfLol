@@ -32,6 +32,8 @@
 		D8AD5EDC27CD32070002CB7A /* UploadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5EDB27CD32070002CB7A /* UploadViewController.swift */; };
 		D8AD5EE027CD34810002CB7A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8AD5EDF27CD34810002CB7A /* GoogleService-Info.plist */; };
 		D8AD5EE927CD382E0002CB7A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D8AD5EE727CD382E0002CB7A /* LaunchScreen.storyboard */; };
+		D8E23D7A27EA4ACF00FA0A14 /* MyPostsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E23D7927EA4ACE00FA0A14 /* MyPostsViewController.swift */; };
+		D8E23D7C27EA4D2900FA0A14 /* MyPostsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E23D7B27EA4D2900FA0A14 /* MyPostsViewModel.swift */; };
 		D8F322C627D06F68005BEA5D /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F322C527D06F68005BEA5D /* LoginViewModel.swift */; };
 		D8F322C827D08106005BEA5D /* SectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F322C727D08106005BEA5D /* SectionViewModel.swift */; };
 /* End PBXBuildFile section */
@@ -66,6 +68,8 @@
 		D8AD5EDF27CD34810002CB7A /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../GoogleService-Info.plist"; sourceTree = "<group>"; };
 		D8AD5EE127CD35870002CB7A /* jurorOfLol.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = jurorOfLol.entitlements; sourceTree = "<group>"; };
 		D8AD5EE727CD382E0002CB7A /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ../../LaunchScreen.storyboard; sourceTree = "<group>"; };
+		D8E23D7927EA4ACE00FA0A14 /* MyPostsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPostsViewController.swift; sourceTree = "<group>"; };
+		D8E23D7B27EA4D2900FA0A14 /* MyPostsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPostsViewModel.swift; sourceTree = "<group>"; };
 		D8F322C527D06F68005BEA5D /* LoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModel.swift; sourceTree = "<group>"; };
 		D8F322C727D08106005BEA5D /* SectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionViewModel.swift; sourceTree = "<group>"; };
 		F1C55C90B973849EE9ED4085 /* Pods_jurorOfLol.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_jurorOfLol.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -146,6 +150,7 @@
 				D8AD5ED927CD31E60002CB7A /* TabBarController.swift */,
 				D8AD5EDB27CD32070002CB7A /* UploadViewController.swift */,
 				D83E484727CEB45300549FA3 /* SettingsController.swift */,
+				D8E23D7927EA4ACE00FA0A14 /* MyPostsViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -160,6 +165,7 @@
 				D8AD5ED327CD31900002CB7A /* PostViewModel.swift */,
 				D85BCBF227DC15500000D486 /* ViewUser.swift */,
 				D85BCBF627DF61D70000D486 /* UploadViewModel.swift */,
+				D8E23D7B27EA4D2900FA0A14 /* MyPostsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -317,6 +323,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D8AD5EDC27CD32070002CB7A /* UploadViewController.swift in Sources */,
+				D8E23D7C27EA4D2900FA0A14 /* MyPostsViewModel.swift in Sources */,
 				D8AD5EC827CD30EC0002CB7A /* PostModel.swift in Sources */,
 				D8AD5ECC27CD31330002CB7A /* HomeTableViewCell.swift in Sources */,
 				D8AD5ED827CD31D30002CB7A /* LoginController.swift in Sources */,
@@ -332,6 +339,7 @@
 				D8AD5ED427CD31900002CB7A /* PostViewModel.swift in Sources */,
 				D8AD5EAE27CD2F450002CB7A /* SceneDelegate.swift in Sources */,
 				D83E484C27CFB32400549FA3 /* StaticSettingTableViewCell.swift in Sources */,
+				D8E23D7A27EA4ACF00FA0A14 /* MyPostsViewController.swift in Sources */,
 				D83E484E27CFBC1100549FA3 /* SwitchSettingTableViewCell.swift in Sources */,
 				D8AD5ECA27CD31130002CB7A /* FireBaseServices.swift in Sources */,
 				D8F322C627D06F68005BEA5D /* LoginViewModel.swift in Sources */,

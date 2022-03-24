@@ -84,7 +84,7 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                                 update["voteData."+docId] = 2
                             }
                             docRef.updateData(update) { err in
-                                if let err = err { print("updating voteDataByUsers error occured") }
+                                if let _ = err { print("updating voteDataByUsers error occured") }
                             }
                         }
                         taskGroup.addTask {
@@ -93,12 +93,16 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                             switch updataType {
                             case .onlyAddFirst:
                                 update["champion1Votes"] = FieldValue.increment(Int64(1))
+                                update["totalVotes"] = FieldValue.increment(Int64(1))
                             case .onlyDecreaseFirst:
                                 update["champion1Votes"] = FieldValue.increment(Int64(-1))
+                                update["totalVotes"] = FieldValue.increment(Int64(-1))
                             case .onlyAddSecond:
                                 update["champion2Votes"] = FieldValue.increment(Int64(1))
+                                update["totalVotes"] = FieldValue.increment(Int64(1))
                             case .onlyDecreaseSecond:
                                 update["champion2Votes"] = FieldValue.increment(Int64(-1))
+                                update["totalVotes"] = FieldValue.increment(Int64(-1))
                             case .addFirstDecreaseSecond:
                                 update["champion1Votes"] = FieldValue.increment(Int64(1))
                                 update["champion2Votes"] = FieldValue.increment(Int64(-1))
@@ -107,7 +111,7 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                                 update["champion2Votes"] = FieldValue.increment(Int64(1))
                             }
                             docRef.updateData(update) { (error) in
-                                if let error = error { print( "Updating voteDataByPost error occured")}
+                                if let _ = error { print( "Updating voteDataByPost error occured")}
                             }
                         }
                         taskGroup.addTask {
@@ -117,7 +121,7 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                                     "champion1VotesUsers": FieldValue.arrayUnion([userId]),
                                     "champion2VotesUsers": FieldValue.arrayRemove([userId])
                                 ]) { err in
-                                    if let err = err {
+                                    if let _ = err {
                                         print("updating userSetForVoteByPost error occured")
                                     }
                                 }
@@ -127,7 +131,7 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                                     "champion1VotesUsers": FieldValue.arrayRemove([userId]),
                                     "champion2VotesUsers": FieldValue.arrayUnion([userId])
                                 ]) { err in
-                                    if let err = err {
+                                    if let _ = err {
                                         print("updating userSetForVoteByPost error occured")
                                     }
                                 }
@@ -148,7 +152,7 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                         let voteData = document.get(key) as? Int
                         fetchedVoteDataForCurrentPost.onNext((voteData: voteData, fromPollNumber: fromPollNumber))
                     }
-                    if let error = error {
+                    if let _ = error {
                         print("Getting document error occured in fetchingVoteDataOfCurrentUserForCurrentPost")
                     }
                 }

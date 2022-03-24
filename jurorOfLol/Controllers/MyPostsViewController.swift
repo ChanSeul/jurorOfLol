@@ -1,8 +1,8 @@
 //
-//  HomeViewController.swift
+//  MyPostViewController.swift
 //  jurorOfLol
 //
-//  Created by 찬슬조 on 2022/03/01.
+//  Created by 찬슬조 on 2022/03/23.
 //
 
 import UIKit
@@ -12,19 +12,18 @@ import RxRelay
 import RxCocoa
 import RxViewController
 
-class HomeViewController: UIViewController {
-    let viewModel: HomeViewModelType
+class MyPostsViewController: UIViewController {
+    let viewModel: MyPostsViewModelType
     var disposeBag = DisposeBag()
     
-    
-    init(viewModel: HomeViewModelType = HomeViewModel()) {
+    init(viewModel: MyPostsViewModelType = MyPostsViewModel()) {
         self.viewModel = viewModel
         //LoginController.shared.delegate = self
         super.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder aDecoder: NSCoder) {
-        viewModel = HomeViewModel()
+        viewModel = MyPostsViewModel()
         super.init(coder: aDecoder)
     }
     
@@ -82,11 +81,11 @@ class HomeViewController: UIViewController {
                                                  cellType: HomeTableViewCell.self)) { [weak self]
                 row, item, cell in
                 guard let self = self else { return }
-                cell.delegate = self
                 cell.bind()
                 cell.data.accept(item)
+                cell.delegate = self
                 cell.tag = row
-                cell.test()
+
             }
             .disposed(by: disposeBag)
         
@@ -114,109 +113,23 @@ class HomeViewController: UIViewController {
         return tableView
     }()
     
-    let header: UIView = {
-        let header = UIView()
-        header.translatesAutoresizingMaskIntoConstraints = false
-        header.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0.6)
-        
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .boldSystemFont(ofSize: 24)
-        label.textColor = .systemBlue
-        label.text = "롤 재판소"
-        header.addSubview(label)
-        label.centerXAnchor.constraint(equalTo: header.centerXAnchor).isActive = true
-        label.centerYAnchor.constraint(equalTo: header.centerYAnchor).isActive = true
-        
-        let sortMethodButton = UIButton()
-        sortMethodButton.translatesAutoresizingMaskIntoConstraints = false
-        sortMethodButton.setImage(UIImage(systemName: "slider.horizontal.3"), for: .normal)
-        sortMethodButton.setPreferredSymbolConfiguration(.init(pointSize: 30, weight: .thin, scale: .default), forImageIn: .normal)
-        sortMethodButton.tintColor = .white
-        header.addSubview(sortMethodButton)
-        sortMethodButton.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -10).isActive = true
-        sortMethodButton.centerYAnchor.constraint(equalTo: header.centerYAnchor).isActive = true
-        sortMethodButton.widthAnchor.constraint(equalTo: header.heightAnchor, multiplier: 0.65).isActive = true
-        sortMethodButton.heightAnchor.constraint(equalTo: header.heightAnchor, multiplier: 0.55).isActive = true
-        sortMethodButton.addTarget(self, action: #selector(showSortingMethod(_:)), for: .touchUpInside)
-        
-        let seperatorView = UIView()
-        seperatorView.translatesAutoresizingMaskIntoConstraints = false
-        seperatorView.backgroundColor = .systemGray4
-        header.addSubview(seperatorView)
-        seperatorView.leadingAnchor.constraint(equalTo: header.leadingAnchor).isActive = true
-        seperatorView.trailingAnchor.constraint(equalTo: header.trailingAnchor).isActive = true
-        seperatorView.topAnchor.constraint(equalTo: header.bottomAnchor, constant: -0.25).isActive = true
-        seperatorView.bottomAnchor.constraint(equalTo: header.bottomAnchor).isActive = true
-        return header
-    }()
-    
-    let btn: UIButton = {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(systemName: "plus.circle.fill")?.applyingSymbolConfiguration(.init(weight: .thin)), for: .normal)
-        button.setPreferredSymbolConfiguration(.init(pointSize: 50, weight: .regular, scale: .default), forImageIn: .normal)
-        return button
-    }()
-    
-    
     func configureUI() {
         view.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
         let guide = view.safeAreaLayoutGuide
         
         view.addSubview(timeLineTableView)
-        view.addSubview(header)
-        view.addSubview(btn)
         
         NSLayoutConstraint.activate([
             timeLineTableView.leadingAnchor.constraint(equalTo: guide.leadingAnchor),
             timeLineTableView.trailingAnchor.constraint(equalTo: guide.trailingAnchor),
-            timeLineTableView.topAnchor.constraint(equalTo: guide.topAnchor, constant: view.frame.height / 15),
-            timeLineTableView.bottomAnchor.constraint(equalTo: guide.bottomAnchor),
-            
-            header.leadingAnchor.constraint(equalTo: guide.leadingAnchor),
-            header.trailingAnchor.constraint(equalTo: guide.trailingAnchor),
-            header.topAnchor.constraint(equalTo: guide.topAnchor),
-            header.bottomAnchor.constraint(equalTo: timeLineTableView.topAnchor),
-            
-            btn.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            btn.bottomAnchor.constraint(equalTo: timeLineTableView.bottomAnchor),
-            btn.heightAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.2),
-            btn.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.2)
+            timeLineTableView.topAnchor.constraint(equalTo: guide.topAnchor),
+            timeLineTableView.bottomAnchor.constraint(equalTo: guide.bottomAnchor)
         ])
-    
-        btn.addTarget(self, action: #selector(buttonAction(_:)), for: .touchUpInside)
     }
-    
-    @objc
-    func buttonAction(_ sender:UIButton!) {
-        if let _ = Auth.auth().currentUser {
-            let uploadModal = UploadViewController(uploadType: .new)
-            uploadModal.delegate = self
-            let navVC = UINavigationController(rootViewController: uploadModal)
-            navVC.modalPresentationStyle = .fullScreen
-            self.present(navVC, animated: true, completion: nil)
-        }
-        else {
-            LoginController.shared.modalPresentationStyle = .overCurrentContext
-            self.present(LoginController.shared, animated: false, completion: nil)
-        }
-    }
-    @objc
-    func showSortingMethod(_ sender:UIButton!) {
-        let actionSheet = UIAlertController(title: "정렬 기준", message: nil, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: "취소", style: .cancel))
-        actionSheet.addAction(UIAlertAction(title: "업로드 날짜", style: .default) { [weak self] _ in
-            self?.viewModel.fetchInitial.onNext(())
-        })
-        actionSheet.addAction(UIAlertAction(title: "투표수", style: .default) { [weak self] _ in
-            self?.viewModel.fetchInitialByVotes.onNext(())
-        })
-        present(actionSheet, animated: true, completion: nil)
-    }
+
 }
 
-extension HomeViewController: HomeTableViewCellDelegate {
+extension MyPostsViewController: HomeTableViewCellDelegate {
     func presentLoginModal() {
         LoginController.shared.modalPresentationStyle = .overCurrentContext
         self.present(LoginController.shared, animated: false, completion: nil)
@@ -241,7 +154,6 @@ extension HomeViewController: HomeTableViewCellDelegate {
         }
         present(actionSheet, animated: true, completion: nil)
     }
-    
     func renewCellHeight() {
         UIView.performWithoutAnimation {
             timeLineTableView.performBatchUpdates(nil)
@@ -249,7 +161,7 @@ extension HomeViewController: HomeTableViewCellDelegate {
     }
 }
 
-extension HomeViewController: RefreshDelegate {
+extension MyPostsViewController: RefreshDelegate {
     func refresh() {
         Observable<Void>.of(())
             .take(1)
@@ -262,5 +174,3 @@ extension HomeViewController: RefreshDelegate {
             .disposed(by: disposeBag)
     }
 }
-
-

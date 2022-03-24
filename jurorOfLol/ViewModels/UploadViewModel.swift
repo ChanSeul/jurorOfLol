@@ -47,6 +47,7 @@ class UploadViewModel: UploadViewModelType{
                                                                        "champion2": currentWrittenPost.champion2,
                                                                        "champion1Votes": 0,
                                                                        "champion2Votes": 0,
+                                                                       "totalVotes": 0,
                                                                        "text": currentWrittenPost.text,
                                                                        "date": Date().timeIntervalSince1970])
                 

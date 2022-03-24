@@ -27,15 +27,14 @@ class TabBarController : UITabBarController {
     func configureUI() {
  
         let timeLine = HomeViewController()
-        //let rank = HomeViewController()
         let myOptions = SettingsController()
         myOptions.delegate = timeLine
-        
         timeLine.title = "홈"
-        //rank.title = "탐색"
         myOptions.title = "계정"
         
-        setViewControllers([timeLine,myOptions], animated: false)
+        let myOptionsNav = UINavigationController(rootViewController: myOptions)
+        myOptionsNav.navigationBar.tintColor = .white
+        setViewControllers([timeLine,myOptionsNav], animated: false)
         
         guard let items = self.tabBar.items else { return }
  

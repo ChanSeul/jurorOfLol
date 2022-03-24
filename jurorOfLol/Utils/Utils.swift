@@ -7,6 +7,7 @@
 
 import UIKit
 import Firebase
+import TTTAttributedLabel
 //func heightWithConstrainedWidth(text: String, width: CGFloat, font: UIFont) -> CGFloat {
 //    let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
 //    let boundingBox = text.boundingRect(with: constraintRect, options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: [NSAttributedString.Key.font: font], context: nil)
@@ -30,14 +31,91 @@ extension UIViewController {
         alertVC.addAction(UIAlertAction(title: "확인", style: .default))
         present(alertVC, animated: true, completion: nil)
     }
+}
+
+//extension UIButton {
+//    open override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+//        let margin: CGFloat = 20
+//        let hitArea = self.bounds.insetBy(dx: -margin, dy: -margin)
+//        return hitArea.contains(point)
+//      }
+//}
+
+enum TrailingContent {
+    case readmore
+    case readless
+
+    var text: String {
+        switch self {
+        case .readmore: return "...자세히 보기"
+        case .readless: return " 간략히"
+        }
+    }
+}
+
+extension UILabel {
+
+    private var minimumLines: Int { return 2 }
+    private var highlightColor: UIColor { return .lightGray }
+
+    private var attributes: [NSAttributedString.Key: Any] {
+        return [.font: self.font ?? .systemFont(ofSize: 16)]
+    }
     
-}
-
-extension UIButton {
-    open override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        let margin: CGFloat = 20
-        let hitArea = self.bounds.insetBy(dx: -margin, dy: -margin)
-        return hitArea.contains(point)
+    public func requiredHeight(for text: String) -> CGFloat {
+        let label = UILabel(frame: CGRect(x: 0, y: 0, width: frame.width, height: CGFloat.greatestFiniteMagnitude))
+//        label.numberOfLines = minimumLines
+//        label.lineBreakMode = NSLineBreakMode.byTruncatingTail
+        label.numberOfLines = 0
+        label.font = font
+        label.text = text
+        label.sizeToFit()
+        return label.frame.height
       }
-}
 
+    func highlight(_ text: String, color: UIColor) {
+        guard let labelText = self.text else { return }
+        let range = (labelText as NSString).range(of: text)
+
+        let mutableAttributedString = NSMutableAttributedString.init(string: labelText)
+        mutableAttributedString.addAttribute(NSAttributedString.Key.foregroundColor, value: color, range: range)
+        self.attributedText = mutableAttributedString
+    }
+
+    func appendReadmore(after text: String, trailingContent: TrailingContent) {
+        self.numberOfLines = minimumLines
+        let minimumLineText = "\n"
+        let minimumlineHeight = requiredHeight(for: minimumLineText)
+        let sentenceText = NSString(string: text)
+        let sentenceRange = NSRange(location: 0, length: sentenceText.length)
+        var truncatedSentence: NSString = sentenceText
+        var endIndex: Int = sentenceRange.upperBound
+        let size: CGSize = CGSize(width: self.bounds.width, height: CGFloat.greatestFiniteMagnitude)
+        while truncatedSentence.boundingRect(with: size, options: .usesLineFragmentOrigin, attributes: attributes, context: nil).size.height >= minimumlineHeight {
+            if endIndex == 0 {
+                break
+            }
+            endIndex -= 1
+
+            truncatedSentence = NSString(string: sentenceText.substring(with: NSRange(location: 0, length: endIndex)))
+            truncatedSentence = (String(truncatedSentence) + trailingContent.text) as NSString
+
+        }
+        self.text = truncatedSentence as String
+        self.highlight(trailingContent.text, color: highlightColor)
+//        print(self.bounds.width)
+//        print(self.text)
+    }
+
+    func appendReadLess(after text: String, trailingContent: TrailingContent) {
+        self.numberOfLines = 0
+        self.text = text
+//        if requiredHeight(for: text) > requiredHeight(for: "\n") {
+//            self.text = text + trailingContent.text
+//            self.highlight(trailingContent.text, color: highlightColor)
+//        }
+//        else {
+//            self.text = text
+//        }
+    }
+}

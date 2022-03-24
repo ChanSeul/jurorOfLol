@@ -41,22 +41,6 @@ class UploadViewController: UIViewController {
         bind()
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        if uploadType == .edit {
-            if let urlCell = uploadTableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? UploadCell,
-               let champion1Cell = uploadTableView.cellForRow(at: IndexPath(row: 1, section: 0)) as? UploadCell,
-               let champion2Cell = uploadTableView.cellForRow(at: IndexPath(row: 2, section: 0)) as? UploadCell,
-               let mainTextCell = uploadTableView.cellForRow(at: IndexPath(row: 3, section: 0)) as? UploadCell,
-               let prepost = self.prepost {
-                urlCell.textView.text = "https://youtu.be/" + prepost.url
-                champion1Cell.textView.text = prepost.champion1
-                champion2Cell.textView.text = prepost.champion2
-                mainTextCell.textView.text = prepost.text
-                viewModel?.writePost.onNext(prepost.ViewPostIntoUploadingPost(viewPost: prepost))
-            }
-        }
-    }
-    
     //MARK: UI
     
     let uploadTableView: UITableView = {
@@ -166,6 +150,9 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                     viewModel.writePost.onNext(newWritten)
                 })
                 .disposed(by: disposeBag)
+            if uploadType == .edit {
+                uploadcell.textView.text = prepost?.url
+            }
         case 1:
             uploadcell.textView.placeholder = "작성자 챔피언."
             uploadcell.textView.rx.didChange
@@ -176,6 +163,9 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                     viewModel.writePost.onNext(newWritten)
                 })
                 .disposed(by: disposeBag)
+            if uploadType == .edit {
+                uploadcell.textView.text = prepost?.champion1
+            }
         case 2:
             uploadcell.textView.placeholder = "상대방 챔피언."
             uploadcell.textView.rx.didChange
@@ -186,6 +176,9 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                     viewModel.writePost.onNext(newWritten)
                 })
                 .disposed(by: disposeBag)
+            if uploadType == .edit {
+                uploadcell.textView.text = prepost?.champion2
+            }
         case 3:
             uploadcell.textView.placeholder = "당시 상황에 대해 자세히 적어주세요."
             uploadcell.blankView.heightAnchor.constraint(equalToConstant: view.frame.height * 0.6).isActive = true
@@ -197,6 +190,9 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                     viewModel.writePost.onNext(newWritten)
                 })
                 .disposed(by: disposeBag)
+            if uploadType == .edit {
+                uploadcell.textView.text = prepost?.text
+            }
         default:
             break
         }
@@ -216,6 +212,10 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                 }
             })
             .disposed(by: disposeBag)
+        
+        if uploadType == .edit, let prepost = prepost {
+            viewModel.writePost.onNext(prepost.ViewPostIntoUploadingPost(viewPost: prepost))
+        }
         
         return uploadcell
     }

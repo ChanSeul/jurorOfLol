@@ -17,6 +17,7 @@ import Firebase
 protocol HomeTableViewCellDelegate {
     func presentLoginModal()
     func showEditModal(docId: String, userId: String, prepost: ViewPost)
+    func renewCellHeight()
 }
 
 class HomeTableViewCell: UITableViewCell {
@@ -31,8 +32,7 @@ class HomeTableViewCell: UITableViewCell {
     var voteData = PublishRelay<ViewPost>()
     
     var isLoaded = false
-    
-    
+       
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) { // 순서 1번
         self.viewModel = HomeTableViewCellViewModel()
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -42,7 +42,9 @@ class HomeTableViewCell: UITableViewCell {
     required init?(coder aDecoder: NSCoder) {
         fatalError("cell init error")
     }
-
+    func test() {
+        
+    }
     func bind() {
         data.asDriver() { _ in .never() }
             .drive(onNext: { [weak self] currentPost in
@@ -56,16 +58,34 @@ class HomeTableViewCell: UITableViewCell {
                     self.isLoaded = true
                 }
                 self.postDate.text = currentPost.date
-                self.postText.text = currentPost.text
+//                self.postText.text = currentPost.text
                 self.poll1.championLabel.text = currentPost.champion1
                 self.poll2.championLabel.text = currentPost.champion2
+                //self.numberOfVotesLabel.text = String(Int(currentPost.champion1Votes + currentPost.champion2Votes)) + "명 투표"
+                self.postText.appendReadmore(after: currentPost.text, trailingContent: .readmore)
                 
                 if let user = Auth.auth().currentUser {
                     self.viewModel.fetchVoteDataOfCurrentUserForCurrentPost.onNext((userId: user.uid, docId: currentPost.docId, fromPollNumber: -1))
                 }
+                
                 self.viewModel.fetchVoteCountOfCurrentPost.onNext(currentPost.docId)
-
             } )
+            .disposed(by: cellDisposeBag)
+        
+        postText.rx.tapGesture()
+            .when(.ended)
+            .withLatestFrom(data)
+            .subscribe(onNext: { [weak self] (currentPost) in
+                guard let self = self else { return }
+                if self.postText.numberOfLines == 0 {
+                    self.postText.appendReadmore(after: currentPost.text, trailingContent: .readmore)
+                    self.delegate?.renewCellHeight()
+                }
+                else {
+                    self.postText.appendReadLess(after: currentPost.text, trailingContent: .readless)
+                    self.delegate?.renewCellHeight()
+                }
+            })
             .disposed(by: cellDisposeBag)
         
         poll1.rx.tapGesture()
@@ -113,6 +133,7 @@ class HomeTableViewCell: UITableViewCell {
             .subscribe(onNext: { [weak self] (preVoteData, currentPostData) in
                 guard let self = self else { return }
                 
+                //fromPollNumber == -1 => Initial Setting
                 if preVoteData.fromPollNumber == -1 {
                     if preVoteData.voteData == nil {
                         DispatchQueue.main.async { [weak self] in
@@ -144,6 +165,7 @@ class HomeTableViewCell: UITableViewCell {
                         DispatchQueue.main.async { [weak self] in
                             self?.poll1.setBlue()
                             self?.poll2.setGray()
+                            self?.numberOfVotesLabel.text = String(Int(oldData.0 + oldData.1 + 1)) + "명 투표"
                         }
                         
                         if let user = Auth.auth().currentUser {
@@ -159,6 +181,7 @@ class HomeTableViewCell: UITableViewCell {
                         
                         DispatchQueue.main.async { [weak self] in
                             self?.poll1.setGray()
+                            self?.numberOfVotesLabel.text = String(Int(oldData.0 + oldData.1 - 1)) + "명 투표"
                         }
                         
                         if let user = Auth.auth().currentUser {
@@ -194,6 +217,7 @@ class HomeTableViewCell: UITableViewCell {
                         DispatchQueue.main.async { [weak self] in
                             self?.poll1.setGray()
                             self?.poll2.setBlue()
+                            self?.numberOfVotesLabel.text = String(Int(oldData.0 + oldData.1 + 1)) + "명 투표"
                         }
                         
                         if let user = Auth.auth().currentUser {
@@ -224,6 +248,7 @@ class HomeTableViewCell: UITableViewCell {
                         
                         DispatchQueue.main.async { [weak self] in
                             self?.poll2.setGray()
+                            self?.numberOfVotesLabel.text = String(Int(oldData.0 + oldData.1 - 1)) + "명 투표"
                         }
                         
                         if let user = Auth.auth().currentUser {
@@ -251,6 +276,7 @@ class HomeTableViewCell: UITableViewCell {
                 
                 self.poll1.setPercentage(percentageNumber: percentage1)
                 self.poll2.setPercentage(percentageNumber: percentage2)
+                self.numberOfVotesLabel.text = String(Int(count1 + count2)) + "명 투표"
             })
             .disposed(by: disposeBag)
     }
@@ -275,6 +301,14 @@ class HomeTableViewCell: UITableViewCell {
         return containerView
     }()
     
+    let editBtn: UIButton = {
+        let editBtn = UIButton()
+        editBtn.setImage(UIImage(systemName: "ellipsis"), for: .normal)
+        editBtn.tintColor = .white
+        editBtn.translatesAutoresizingMaskIntoConstraints = false
+        return editBtn
+    }()
+    
     let postDate: UILabel = {
         let date = UILabel()
         date.translatesAutoresizingMaskIntoConstraints = false
@@ -284,13 +318,14 @@ class HomeTableViewCell: UITableViewCell {
     }()
     
     let postText: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .white
-        label.lineBreakMode = .byTruncatingTail
-        label.numberOfLines = 50
-        return label
+        // width 설정 안하면 첫 로딩화면에서 UILabel의 width가 0이돼서 UILabel.appendReadmore()가 제대로 작동 안하게됨.
+        let postText = UILabel(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width - 36, height: 0))
+        postText.translatesAutoresizingMaskIntoConstraints = false
+        postText.font = UIFont.systemFont(ofSize: 16)
+        postText.textColor = .white
+//        postText.lineBreakMode = .byTruncatingTail
+//        postText.numberOfLines = 0
+        return postText
     }()
     
     let videoContainerView: WKYTPlayerView = {
@@ -308,15 +343,25 @@ class HomeTableViewCell: UITableViewCell {
         return seperatorView
     }()
     
+    let pollLabel: UILabel = {
+        let pollLabel = UILabel()
+        pollLabel.translatesAutoresizingMaskIntoConstraints = false
+        pollLabel.font = UIFont.systemFont(ofSize: 16)
+        pollLabel.textColor = .lightGray
+        pollLabel.text = "둘중 잘못한 사람은?"
+        return pollLabel
+    }()
+    
     var poll1 = PollView()
     var poll2 = PollView()
     
-    let editBtn: UIButton = {
-        let editBtn = UIButton()
-        editBtn.setImage(UIImage(systemName: "ellipsis"), for: .normal)
-        editBtn.tintColor = .white
-        editBtn.translatesAutoresizingMaskIntoConstraints = false
-        return editBtn
+    let numberOfVotesLabel: UILabel = {
+        let numberOfVotesLabel = UILabel()
+        numberOfVotesLabel.translatesAutoresizingMaskIntoConstraints = false
+        numberOfVotesLabel.font = UIFont.systemFont(ofSize: 14)
+        numberOfVotesLabel.textColor = .lightGray
+        numberOfVotesLabel.text = "test"
+        return numberOfVotesLabel
     }()
     
     func configureUI() {
@@ -327,17 +372,23 @@ class HomeTableViewCell: UITableViewCell {
         containerView.addSubview(postDate)
         containerView.addSubview(postText)
         containerView.addSubview(videoContainerView)
+        containerView.addSubview(pollLabel)
         containerView.addSubview(poll1)
         containerView.addSubview(poll2)
         containerView.addSubview(editBtn)
+        containerView.addSubview(numberOfVotesLabel)
         containerView.addSubview(seperatorView)
         
         let margin: CGFloat = 18
         NSLayoutConstraint.activate([
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+//            containerView.widthAnchor.constraint(equalTo: contentView.widthAnchor),
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            
+            editBtn.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
+            editBtn.topAnchor.constraint(equalTo: containerView.topAnchor, constant: margin / 2),
             
             postDate.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin),
             postDate.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
@@ -345,6 +396,7 @@ class HomeTableViewCell: UITableViewCell {
             
             postText.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin),
             postText.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
+//            postText.widthAnchor.constraint(equalTo: self.widthAnchor, constant: -margin * 2),
             postText.topAnchor.constraint(equalTo: postDate.bottomAnchor),
             postText.heightAnchor.constraint(greaterThanOrEqualToConstant: 1),
             
@@ -353,25 +405,28 @@ class HomeTableViewCell: UITableViewCell {
             videoContainerView.topAnchor.constraint(equalTo: postText.bottomAnchor, constant: margin),
             videoContainerView.heightAnchor.constraint(equalTo: containerView.widthAnchor, multiplier: 9 / 16),
             
+            pollLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin * 1.5),
+            pollLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
+            pollLabel.topAnchor.constraint(equalTo: videoContainerView.bottomAnchor, constant: margin),
+            
             poll1.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin),
             poll1.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
-            poll1.topAnchor.constraint(equalTo: videoContainerView.bottomAnchor, constant: margin),
+            poll1.topAnchor.constraint(equalTo: pollLabel.bottomAnchor, constant: margin / 4),
             
             poll2.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin),
             poll2.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
             poll2.topAnchor.constraint(equalTo: poll1.bottomAnchor, constant: margin / 2),
             
-            editBtn.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
-            editBtn.topAnchor.constraint(equalTo: containerView.topAnchor, constant: margin / 2),
+            numberOfVotesLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin * 1.5),
+            numberOfVotesLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
+            numberOfVotesLabel.topAnchor.constraint(equalTo: poll2.bottomAnchor, constant: margin / 4),
             
             seperatorView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             seperatorView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            seperatorView.topAnchor.constraint(equalTo: poll2.bottomAnchor, constant: margin),
+            seperatorView.topAnchor.constraint(equalTo: numberOfVotesLabel.bottomAnchor, constant: margin),
             seperatorView.heightAnchor.constraint(equalToConstant: 1),
             seperatorView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
     }
-    
 }
-
 
