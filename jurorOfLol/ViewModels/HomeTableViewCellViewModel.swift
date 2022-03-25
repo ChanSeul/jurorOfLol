@@ -116,7 +116,41 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                         }
                         taskGroup.addTask {
                             let docRef = db.collection("userSetForVoteByPost").document(docId)
-                            if fromPollNumber == 1 {
+                            switch updataType {
+                    
+                            case .onlyAddFirst:
+                                docRef.updateData([
+                                    "champion1VotesUsers": FieldValue.arrayUnion([userId]),
+                                ]) { err in
+                                    if let _ = err {
+                                        print("updating userSetForVoteByPost error occured")
+                                    }
+                                }
+                            case .onlyDecreaseFirst:
+                                docRef.updateData([
+                                    "champion1VotesUsers": FieldValue.arrayRemove([userId])
+                                ]) { err in
+                                    if let _ = err {
+                                        print("updating userSetForVoteByPost error occured")
+                                    }
+                                }
+                            case .onlyAddSecond:
+                                docRef.updateData([
+                                    "champion2VotesUsers": FieldValue.arrayUnion([userId])
+                                ]) { err in
+                                    if let _ = err {
+                                        print("updating userSetForVoteByPost error occured")
+                                    }
+                                }
+                            case .onlyDecreaseSecond:
+                                docRef.updateData([
+                                    "champion2VotesUsers": FieldValue.arrayRemove([userId])
+                                ]) { err in
+                                    if let _ = err {
+                                        print("updating userSetForVoteByPost error occured")
+                                    }
+                                }
+                            case .addFirstDecreaseSecond:
                                 docRef.updateData([
                                     "champion1VotesUsers": FieldValue.arrayUnion([userId]),
                                     "champion2VotesUsers": FieldValue.arrayRemove([userId])
@@ -125,8 +159,7 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                                         print("updating userSetForVoteByPost error occured")
                                     }
                                 }
-                            }
-                            else if fromPollNumber == 2 {
+                            case .decreaseFirstAddSecond:
                                 docRef.updateData([
                                     "champion1VotesUsers": FieldValue.arrayRemove([userId]),
                                     "champion2VotesUsers": FieldValue.arrayUnion([userId])
@@ -136,6 +169,26 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                                     }
                                 }
                             }
+//                            if fromPollNumber == 1 {
+//                                docRef.updateData([
+//                                    "champion1VotesUsers": FieldValue.arrayUnion([userId]),
+//                                    "champion2VotesUsers": FieldValue.arrayRemove([userId])
+//                                ]) { err in
+//                                    if let _ = err {
+//                                        print("updating userSetForVoteByPost error occured")
+//                                    }
+//                                }
+//                            }
+//                            else if fromPollNumber == 2 {
+//                                docRef.updateData([
+//                                    "champion1VotesUsers": FieldValue.arrayRemove([userId]),
+//                                    "champion2VotesUsers": FieldValue.arrayUnion([userId])
+//                                ]) { err in
+//                                    if let _ = err {
+//                                        print("updating userSetForVoteByPost error occured")
+//                                    }
+//                                }
+//                            }
                         }
                     })
                     activating.onNext(false)

@@ -11,11 +11,18 @@ import UIKit
 class StaticSettingTableViewCell: UITableViewCell {
     static let identifier = "SettingTableViewCell"
     
-    lazy var label: UILabel = {
+    let label: UILabel = {
         let label = UILabel()
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+    
+    let seperatorView: UIView = {
+        let seperatorView = UIView()
+        seperatorView.translatesAutoresizingMaskIntoConstraints = false
+        seperatorView.backgroundColor = .systemGray4
+        return seperatorView
     }()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -29,11 +36,17 @@ class StaticSettingTableViewCell: UITableViewCell {
     func configureUI() {
         backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
         contentView.addSubview(label)
+        contentView.addSubview(seperatorView)
         
         NSLayoutConstraint.activate([
             label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 18),
             label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 18),
-            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -18)
+            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -18),
+            
+            seperatorView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            seperatorView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            seperatorView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            seperatorView.heightAnchor.constraint(equalToConstant: 0.5)
         ])
         
         accessoryType = .disclosureIndicator

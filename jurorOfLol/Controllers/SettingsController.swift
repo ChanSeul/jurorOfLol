@@ -79,7 +79,7 @@ class SettingsController: UIViewController {
                                 self?.showLogoutAlert("알림", "정말 로그아웃 하시겠습니까?")
                             }),
                             .staticCell(model: SettingsStaticOption(title: "회원탈퇴") { [weak self] in
-                                
+                                self?.showDeleteAlert("알림", "정말 탈퇴 하시겠습니까?\n" + "작성된 게시물들은 삭제되지 않습니다.")
                             })
                         ]),
                         Section(title: "", items: [
@@ -164,6 +164,29 @@ class SettingsController: UIViewController {
                 return
             }
             LoginViewModel.shared.isLogin.accept(false)
+        })
+        present(alertVC, animated: true, completion: nil)
+    }
+    
+    func showDeleteAlert(_ title: String, _ message: String) {
+        let alertVC = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alertVC.addAction(UIAlertAction(title: "취소", style: .cancel))
+        alertVC.addAction(UIAlertAction(title: "확인", style: .default) { _ in
+            let user = Auth.auth().currentUser
+            user?.delete { (error) in
+                if let _ = error {
+                    print(error)
+                }
+                else {
+                    do {
+                        try Auth.auth().signOut()
+                        LoginViewModel.shared.isLogin.accept(false)
+                    } catch let signOutError as NSError {
+                        print("Error signing out: %@", signOutError)
+                        return
+                    }
+                }
+            }
         })
         present(alertVC, animated: true, completion: nil)
     }

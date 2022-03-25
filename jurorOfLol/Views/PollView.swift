@@ -24,12 +24,12 @@ class PollView: UIView {
     }
     
     func setPercentage(percentageNumber: Double) {
-        var n = percentageNumber
-        if n == 1.0 { n = 0.9825 }
-        
+        var margin:CGFloat = 0
+        if percentageNumber >= 0.99 { margin = -4.0 }
+
         deactiveWidthConstraint()
         
-        percentageFillingWidthViewConstraint = percentageFillingView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: n)
+        percentageFillingWidthViewConstraint = percentageFillingView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: percentageNumber, constant: margin)
         if let width = percentageFillingWidthViewConstraint {
             NSLayoutConstraint.activate([width])
         }
@@ -58,7 +58,7 @@ class PollView: UIView {
         let percentageFillingView = UIView()
         percentageFillingView.translatesAutoresizingMaskIntoConstraints = false
         percentageFillingView.backgroundColor = .systemGray4
-        percentageFillingView.layer.cornerRadius = 5
+        percentageFillingView.layer.cornerRadius = 3
         return percentageFillingView
     }()
     
@@ -85,7 +85,7 @@ class PollView: UIView {
         let borderColor: UIColor = .systemGray4
         layer.borderColor = borderColor.cgColor
         clipsToBounds = true
-        layer.cornerRadius = 7
+        layer.cornerRadius = 3
         
         translatesAutoresizingMaskIntoConstraints = false
     
@@ -96,9 +96,9 @@ class PollView: UIView {
         
         let margin:CGFloat = 9
         NSLayoutConstraint.activate([
-            percentageFillingView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 3),
-            percentageFillingView.topAnchor.constraint(equalTo: self.topAnchor, constant: 3),
-            percentageFillingView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -3),
+            percentageFillingView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 2),
+            percentageFillingView.topAnchor.constraint(equalTo: self.topAnchor, constant: 2),
+            percentageFillingView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -2),
             
             championLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: margin),
             championLabel.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.8),

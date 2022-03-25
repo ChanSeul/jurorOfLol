@@ -82,7 +82,7 @@ class UploadCell: UITableViewCell{
             seperatorView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             seperatorView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             seperatorView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-            seperatorView.heightAnchor.constraint(equalToConstant: 0.25)
+            seperatorView.heightAnchor.constraint(equalToConstant: 1)
         ])
         
     }

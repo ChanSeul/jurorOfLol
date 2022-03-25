@@ -114,18 +114,19 @@ class HomeViewController: UIViewController {
         return tableView
     }()
     
-    let header: UIView = {
+    lazy var header: UIView = {
         let header = UIView()
         header.translatesAutoresizingMaskIntoConstraints = false
         header.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0.6)
         
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .boldSystemFont(ofSize: 24)
-        label.textColor = .systemBlue
-        label.text = "롤 재판소"
+        label.font = .boldSystemFont(ofSize: 20)
+        label.textColor = .white
+        label.text = "홈"
         header.addSubview(label)
-        label.centerXAnchor.constraint(equalTo: header.centerXAnchor).isActive = true
+        label.leadingAnchor.constraint(equalTo: header.leadingAnchor, constant: 18).isActive = true
+        //label.centerXAnchor.constraint(equalTo: header.centerXAnchor).isActive = true
         label.centerYAnchor.constraint(equalTo: header.centerYAnchor).isActive = true
         
         let sortMethodButton = UIButton()
@@ -137,7 +138,7 @@ class HomeViewController: UIViewController {
         sortMethodButton.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -10).isActive = true
         sortMethodButton.centerYAnchor.constraint(equalTo: header.centerYAnchor).isActive = true
         sortMethodButton.widthAnchor.constraint(equalTo: header.heightAnchor, multiplier: 0.65).isActive = true
-        sortMethodButton.heightAnchor.constraint(equalTo: header.heightAnchor, multiplier: 0.55).isActive = true
+        sortMethodButton.heightAnchor.constraint(equalTo: header.heightAnchor, multiplier: 0.5).isActive = true
         sortMethodButton.addTarget(self, action: #selector(showSortingMethod(_:)), for: .touchUpInside)
         
         let seperatorView = UIView()

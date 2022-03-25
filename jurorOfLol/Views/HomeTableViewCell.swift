@@ -270,8 +270,8 @@ class HomeTableViewCell: UITableViewCell {
                     percentage2 = 0
                 }
                 else {
-                    percentage1 = round(count1 / (count1 + count2))
-                    percentage2 = round(count2 / (count1 + count2))
+                    percentage1 = round(count1 / (count1 + count2) * 100) / 100
+                    percentage2 = round(count2 / (count1 + count2) * 100) / 100
                 }
                 
                 self.poll1.setPercentage(percentageNumber: percentage1)
@@ -348,7 +348,7 @@ class HomeTableViewCell: UITableViewCell {
         pollLabel.translatesAutoresizingMaskIntoConstraints = false
         pollLabel.font = UIFont.systemFont(ofSize: 16)
         pollLabel.textColor = .lightGray
-        pollLabel.text = "둘중 잘못한 사람은?"
+        pollLabel.text = "누구의 플레이의 동의하나요?"
         return pollLabel
     }()
     

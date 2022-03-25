@@ -62,6 +62,7 @@ class UploadViewController: UIViewController {
     
     func configureUI() {
         view.backgroundColor = .systemBackground
+        navigationController?.navigationBar.tintColor = .white
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: nil)
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "완료", style: .plain, target: self, action: nil)
         navigationController?.navigationBar.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)

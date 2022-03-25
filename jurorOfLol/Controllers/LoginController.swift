@@ -156,7 +156,7 @@ class LoginController: UIViewController {
     
     func animateDismissView() {
         // hide main container view by updating bottom constraint in animation block
-        UIView.animate(withDuration: 0.3) {
+        UIView.animate(withDuration: 0.2) {
             self.containerViewBottomConstraint?.constant = self.containerViewHeight
             // call this to trigger refresh constraint
             self.view.layoutIfNeeded()
@@ -164,7 +164,7 @@ class LoginController: UIViewController {
         
         // hide blur view
         dimmedView.alpha = maxDimmedAlpha
-        UIView.animate(withDuration: 0.4) {
+        UIView.animate(withDuration: 0.2) {
             self.dimmedView.alpha = 0
         } completion: { _ in
             // once done, dismiss without animation
@@ -222,7 +222,7 @@ extension LoginController: ASAuthorizationControllerDelegate {
                     return
                 }
                 if let user = authDataResult?.user {
-                    print("Nice! You're now signed in as \(user.uid), email: \(user.email ?? "unknwon")")
+                    //print("Nice! You're now signed in as \(user.uid), email: \(user.email ?? "unknwon")")
                     let db = Firestore.firestore()
                     let docRef = db.collection("voteDataByUsers").document(user.uid)
                     docRef.getDocument { document, error in
