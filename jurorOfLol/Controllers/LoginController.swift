@@ -197,6 +197,46 @@ class LoginController: UIViewController {
       authorizationController.performRequests()
     }
     
+    @available(iOS 13, *)
+    func startSignInWithFirebaseFlow(credential: OAuthCredential, appleUserId: String) {
+        Auth.auth().signIn(with: credential) { (authDataResult, error) in
+            if let error = error {
+                print(error.localizedDescription)
+                return
+            }
+            if let user = authDataResult?.user {
+                let db = Firestore.firestore()
+                let docRef = db.collection("voteDataByUsers").document(user.uid)
+                docRef.getDocument { document, error in
+                    if let document = document, document.exists == false {
+                        docRef.setData(["userId": user.uid]) { err in
+                            if let err = err {
+                                print(err.localizedDescription)
+                            }
+                        }
+                    }
+                    if let error = error {
+                        print(error.localizedDescription)
+                    }
+                }
+                let docRef2 = db.collection("appleUserIdByUsers").document(user.uid)
+                docRef2.getDocument { document, error in
+                    if let document = document, document.exists == false {
+                        docRef2.setData(["AppleUserId": appleUserId]) { err in
+                            if let err = err {
+                                print(err.localizedDescription)
+                            }
+                        }
+                    }
+                    if let error = error {
+                        print(error.localizedDescription)
+                    }
+                }
+                LoginViewModel.shared.isLogin.accept(true)
+                self.animateDismissView()
+            }
+        }
+    }
 }
 @available(iOS 13.0, *)
 extension LoginController: ASAuthorizationControllerDelegate {
@@ -215,35 +255,61 @@ extension LoginController: ASAuthorizationControllerDelegate {
             }
             
             let credential = OAuthProvider.credential(withProviderID: "apple.com", idToken: idTokenString, rawNonce: nonce)
-            
-            Auth.auth().signIn(with: credential) { (authDataResult, error) in
+            //print(appleIDCredential.user)
+            let db = Firestore.firestore()
+            let docRef = db.collection("withdrawalList").document(appleIDCredential.user)
+            docRef.getDocument { [weak self] document, error in
                 if let error = error {
                     print(error.localizedDescription)
-                    return
                 }
-                if let user = authDataResult?.user {
-                    //print("Nice! You're now signed in as \(user.uid), email: \(user.email ?? "unknwon")")
-                    let db = Firestore.firestore()
-                    let docRef = db.collection("voteDataByUsers").document(user.uid)
-                    docRef.getDocument { document, error in
-                        if let document = document, document.exists == false {
-                            docRef.setData(["userId": user.uid]) { err in
-                                if let err = err {
-                                    print("User Id Setting error occured")
-                                }
+                if let document = document {
+                    if document.exists == true { //가입하고 탈퇴한적이 있는경우.
+                        if let date = document.get("date") as? Double {
+                            if Date().timeIntervalSince1970 - date < 604800 { // 탈퇴한지 1주일이 안 되었기 때문에 로그인 안 됨.
+                                let alertVC = UIAlertController(title: "알림", message: "회원 탈퇴 후, 일주일이 지나야 가입할 수 있습니다.", preferredStyle: .alert)
+                                alertVC.addAction(UIAlertAction(title: "확인", style: .default) { _ in
+                                    self?.animateDismissView()
+                                })
+                                self?.present(alertVC, animated: true, completion: nil)
+                            }
+                            else { //탈퇴한지 1주일 넘었으므로 로그인
+                                self?.startSignInWithFirebaseFlow(credential: credential, appleUserId: appleIDCredential.user)
                             }
                         }
-                        if let error = error {
-                            print("Getting document error occured")
-                        }
                     }
-                    LoginViewModel.shared.isLogin.accept(true)
-                    self.animateDismissView()
+                    else { // 가입한적이 없는 경우 or 가입하고 탈퇴한적이 없는경우. 로그인.
+                        self?.startSignInWithFirebaseFlow(credential: credential, appleUserId: appleIDCredential.user)
+                    }
                 }
             }
+//            let db = Firestore.firestore()
+//            let docRef = db.collection("withdrawalList").document(appleIDCredential.user)
+//            docRef.getDocument { [weak self] document, error in
+//                if let error = error {
+//                    print(error.localizedDescription)
+//                }
+//                if let document = document {
+//                    if document.exists == true { //가입한적이 있는 경우.
+//                        if let date = document.get("date") as? Double { // 탈퇴한적이 있는경우
+//                            if Date().timeIntervalSince1970 - date < 604800 { // 탈퇴한지 1주일이 안 되었기 때문에 로그인 안 됨.
+//                                // alert처리
+//                                print("아직 1주일이 안 됐어요.")
+//                            }
+//                            else { //탈퇴한지 1주일 넘었으므로 로그인
+//                                self?.startSignInWithFirebaseFlow(credential: credential, appleUserId: appleIDCredential.user)
+//                            }
+//                        }
+//                        else { // 탈퇴한적이 없는경우 로그인
+//                            self?.startSignInWithFirebaseFlow(credential: credential, appleUserId: appleIDCredential.user)
+//                        }
+//                    }
+//                    else { // 가입한적이 없는 경우. 로그인.
+//                        self?.startSignInWithFirebaseFlow(credential: credential, appleUserId: appleIDCredential.user)
+//                    }
+//                }
+//            }
         }
     }
-    
 }
 @available(iOS 13.0, *)
 extension LoginController: ASAuthorizationControllerPresentationContextProviding {

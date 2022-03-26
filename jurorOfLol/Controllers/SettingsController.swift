@@ -78,8 +78,8 @@ class SettingsController: UIViewController {
                             .staticCell(model: SettingsStaticOption(title: "로그아웃") { [weak self] in
                                 self?.showLogoutAlert("알림", "정말 로그아웃 하시겠습니까?")
                             }),
-                            .staticCell(model: SettingsStaticOption(title: "회원탈퇴") { [weak self] in
-                                self?.showDeleteAlert("알림", "정말 탈퇴 하시겠습니까?\n" + "작성된 게시물들은 삭제되지 않습니다.")
+                            .staticCell(model: SettingsStaticOption(title: "회원 탈퇴") { [weak self] in
+                                self?.showDeleteAlert("알림", "정말 회원 탈퇴 하시겠습니까?\n" + "작성된 게시물은 삭제되지 않습니다.")
                             })
                         ]),
                         Section(title: "", items: [
@@ -172,18 +172,34 @@ class SettingsController: UIViewController {
         let alertVC = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alertVC.addAction(UIAlertAction(title: "취소", style: .cancel))
         alertVC.addAction(UIAlertAction(title: "확인", style: .default) { _ in
-            let user = Auth.auth().currentUser
-            user?.delete { (error) in
-                if let _ = error {
+            guard let user = Auth.auth().currentUser else { return }
+            user.delete { (error) in
+                if let error = error {
                     print(error)
                 }
                 else {
                     do {
                         try Auth.auth().signOut()
-                        LoginViewModel.shared.isLogin.accept(false)
                     } catch let signOutError as NSError {
                         print("Error signing out: %@", signOutError)
                         return
+                    }
+                    LoginViewModel.shared.isLogin.accept(false)
+                    let db = Firestore.firestore()
+                    let docRef = db.collection("appleUserIdByUsers").document(user.uid)
+                    docRef.getDocument { (document, error) in
+                        if let error = error {
+                            print(error.localizedDescription)
+                        }
+                        if let document = document, document.exists == true {
+                            if let appleId = document.get("AppleUserId") as? String {
+                                db.collection("withdrawalList").document(appleId).setData(["date": Date().timeIntervalSince1970]) { error in
+                                    if let error = error {
+                                        print(error.localizedDescription)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
