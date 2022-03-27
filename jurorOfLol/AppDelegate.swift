@@ -33,6 +33,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
 
-
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        ThreadViewModel.shared.isBackground.accept(true)
+    }
+    
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        ThreadViewModel.shared.isBackground.accept(false)
+    }
 }
 

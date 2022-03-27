@@ -79,7 +79,11 @@ class SettingsController: UIViewController {
                                 self?.showLogoutAlert("알림", "정말 로그아웃 하시겠습니까?")
                             }),
                             .staticCell(model: SettingsStaticOption(title: "회원 탈퇴") { [weak self] in
-                                self?.showDeleteAlert("알림", "정말 회원 탈퇴 하시겠습니까?\n" + "작성된 게시물은 삭제되지 않습니다.")
+                                self?.showDeleteAlert("알림", "정말 회원 탈퇴 하시겠습니까?\n" + "작성된 게시물은 삭제되지 않습니다.") { success in
+                                    if success == true {
+                                        self?.showAlert("알림", "회원 탈퇴가 완료되었습니다.")
+                                    }
+                                }
                             })
                         ]),
                         Section(title: "", items: [
@@ -168,7 +172,7 @@ class SettingsController: UIViewController {
         present(alertVC, animated: true, completion: nil)
     }
     
-    func showDeleteAlert(_ title: String, _ message: String) {
+    func showDeleteAlert(_ title: String, _ message: String, completion: @escaping (Bool) -> Void) {
         let alertVC = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alertVC.addAction(UIAlertAction(title: "취소", style: .cancel))
         alertVC.addAction(UIAlertAction(title: "확인", style: .default) { _ in
@@ -184,7 +188,6 @@ class SettingsController: UIViewController {
                         print("Error signing out: %@", signOutError)
                         return
                     }
-                    LoginViewModel.shared.isLogin.accept(false)
                     let db = Firestore.firestore()
                     let docRef = db.collection("appleUserIdByUsers").document(user.uid)
                     docRef.getDocument { (document, error) in
@@ -201,6 +204,8 @@ class SettingsController: UIViewController {
                             }
                         }
                     }
+                    LoginViewModel.shared.isLogin.accept(false)
+                    completion(true)
                 }
             }
         })

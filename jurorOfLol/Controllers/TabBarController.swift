@@ -8,12 +8,14 @@
 import UIKit
 
 class TabBarController : UITabBarController {
-    
+    let timeLine = HomeViewController()
+    let myOptions = SettingsController()
     let unselectedImages = ["house"/*, "flame"*/,"person"]
     var itemIdx = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        myOptions.delegate = timeLine
         configureUI()
     }
     
@@ -25,10 +27,6 @@ class TabBarController : UITabBarController {
     }()
     
     func configureUI() {
- 
-        let timeLine = HomeViewController()
-        let myOptions = SettingsController()
-        myOptions.delegate = timeLine
         timeLine.title = "홈"
         myOptions.title = "계정"
         
@@ -52,22 +50,23 @@ class TabBarController : UITabBarController {
         tabBar.tintColor = .white
         
         tabBar.addSubview(seperatorView)
-//        NSLayoutConstraint.activate([
-//            seperatorView.leadingAnchor.constraint(equalTo: tabBar.leadingAnchor),
-//            seperatorView.trailingAnchor.constraint(equalTo: tabBar.trailingAnchor),
-//            seperatorView.topAnchor.constraint(equalTo: tabBar.topAnchor),
-//            seperatorView.heightAnchor.constraint(equalToConstant: 0.25)
-//        ])
+
         
     }
+ 
     override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
         guard let items = self.tabBar.items else { return }
         
         for i in 0..<items.count {
             if item == items[i] {
+                if itemIdx == 0 && i == 0 {
+                    let indexPath = IndexPath(row: 0, section: 0)
+                    timeLine.timeLineTableView.scrollToRow(at: indexPath, at: .top, animated: true)
+                }
                 items[itemIdx].image = UIImage(systemName: unselectedImages[itemIdx])?.applyingSymbolConfiguration(.init(weight: .thin))
                 item.image = UIImage(systemName: unselectedImages[i] + ".fill")?.applyingSymbolConfiguration(.init(weight: .thin))
                 itemIdx = i
+                return
             }
         }
     }

@@ -266,7 +266,7 @@ extension LoginController: ASAuthorizationControllerDelegate {
                     if document.exists == true { //가입하고 탈퇴한적이 있는경우.
                         if let date = document.get("date") as? Double {
                             if Date().timeIntervalSince1970 - date < 604800 { // 탈퇴한지 1주일이 안 되었기 때문에 로그인 안 됨.
-                                let alertVC = UIAlertController(title: "알림", message: "회원 탈퇴 후, 일주일이 지나야 가입할 수 있습니다.", preferredStyle: .alert)
+                                let alertVC = UIAlertController(title: "알림", message: "탈퇴 처리된 ID는 7일동안 재가입이 불가능합니다.", preferredStyle: .alert)
                                 alertVC.addAction(UIAlertAction(title: "확인", style: .default) { _ in
                                     self?.animateDismissView()
                                 })

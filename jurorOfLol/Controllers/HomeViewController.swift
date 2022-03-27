@@ -86,7 +86,6 @@ class HomeViewController: UIViewController {
                 cell.bind()
                 cell.data.accept(item)
                 cell.tag = row
-                cell.test()
             }
             .disposed(by: disposeBag)
         
@@ -100,6 +99,14 @@ class HomeViewController: UIViewController {
             })
             .disposed(by: disposeBag)
         
+        // MARK: From background into foreground
+        ThreadViewModel.shared.isBackground
+            .subscribe(onNext: { [weak self] isBackground in
+                if isBackground == true {
+                    self?.viewModel.fetchInitial.onNext(())
+                }
+            })
+            .disposed(by: disposeBag)
     }
     
     //MARK: UI

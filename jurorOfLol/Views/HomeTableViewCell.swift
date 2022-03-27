@@ -23,7 +23,7 @@ protocol HomeTableViewCellDelegate {
 class HomeTableViewCell: UITableViewCell {
     var viewModel: HomeTableViewCellViewModelType
     static let identifier = "HomeTableViewCell"
-    var cellDisposeBag = DisposeBag()
+    //var cellDisposeBag = DisposeBag()
     var delegate: HomeTableViewCellDelegate?
     
     var disposeBag = DisposeBag()
@@ -37,14 +37,19 @@ class HomeTableViewCell: UITableViewCell {
         self.viewModel = HomeTableViewCellViewModel()
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         configureUI()
+        ThreadViewModel.shared.isBackground
+            .subscribe(onNext: { [weak self] isBackground in
+                if isBackground == true {
+                    self?.isLoaded = false
+                }
+            })
+            .disposed(by: disposeBag)
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("cell init error")
     }
-    func test() {
-        
-    }
+ 
     func bind() {
         data.asDriver() { _ in .never() }
             .drive(onNext: { [weak self] currentPost in
@@ -58,10 +63,8 @@ class HomeTableViewCell: UITableViewCell {
                     self.isLoaded = true
                 }
                 self.postDate.text = currentPost.date
-//                self.postText.text = currentPost.text
                 self.poll1.championLabel.text = currentPost.champion1
                 self.poll2.championLabel.text = currentPost.champion2
-                //self.numberOfVotesLabel.text = String(Int(currentPost.champion1Votes + currentPost.champion2Votes)) + "명 투표"
                 self.postText.appendReadmore(after: currentPost.text, trailingContent: .readmore)
                 
                 if let user = Auth.auth().currentUser {
@@ -70,7 +73,7 @@ class HomeTableViewCell: UITableViewCell {
                 
                 self.viewModel.fetchVoteCountOfCurrentPost.onNext(currentPost.docId)
             } )
-            .disposed(by: cellDisposeBag)
+            .disposed(by: disposeBag)
         
         postText.rx.tapGesture()
             .when(.ended)
@@ -86,7 +89,7 @@ class HomeTableViewCell: UITableViewCell {
                     self.delegate?.renewCellHeight()
                 }
             })
-            .disposed(by: cellDisposeBag)
+            .disposed(by: disposeBag)
         
         poll1.rx.tapGesture()
             .when(.ended)
@@ -100,7 +103,7 @@ class HomeTableViewCell: UITableViewCell {
                     self?.viewModel.fetchVoteDataOfCurrentUserForCurrentPost.onNext((userId: user.uid, docId: post.docId, fromPollNumber: 1))
                 }
             })
-            .disposed(by: cellDisposeBag)
+            .disposed(by: disposeBag)
         
         poll2.rx.tapGesture()
             .when(.ended)
@@ -115,7 +118,7 @@ class HomeTableViewCell: UITableViewCell {
                 }
                 
             })
-            .disposed(by: cellDisposeBag)
+            .disposed(by: disposeBag)
         
         editBtn.rx.tapGesture()
             .when(.ended)
@@ -286,7 +289,7 @@ class HomeTableViewCell: UITableViewCell {
         viewModel = HomeTableViewCellViewModel()
         data = PublishRelay<ViewPost>()
         disposeBag = DisposeBag()
-        cellDisposeBag = DisposeBag()
+//        cellDisposeBag = DisposeBag()
         poll1.setGray()
         poll2.setGray()
         poll1.deactiveWidthConstraint()
