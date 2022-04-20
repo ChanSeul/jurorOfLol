@@ -6,9 +6,13 @@
   
   게시글과 동영상을 보고 투표바를 탭하여 투표를 할 수 있습니다.
   로그인 상태에서만 투표와 업로드를 할 수 있으며, 비로그인 상태에서 투표바와 우측하단의 업로드 버튼을 탭할시, 로그인창이 나타납니다.  
-![KakaoTalk_Photo_2022-04-20-19-15-42](https://user-images.githubusercontent.com/37011809/164207563-97ef8748-cc7a-4802-8634-c9338904fdbf.png)  
+  
+  ![IMG_0386](https://user-images.githubusercontent.com/37011809/164213888-471e9178-b758-4ffa-a631-c24dafce9478.PNG)  
+  
+  ![KakaoTalk_Photo_2022-04-20-19-15-42](https://user-images.githubusercontent.com/37011809/164207563-97ef8748-cc7a-4802-8634-c9338904fdbf.png)  
+  
 - 업로드 화면  
   
   홈 화면의 우측하단의 업로드 버튼을 누르면, 업로드화면이 나타납니다. 모든 항목이 입력되어야 업로드되며, 본인의 주장은 상단바에, 상대방의 주장은 하단바에 나타납니다.  
     
-    ![IMG_0381](https://user-images.githubusercontent.com/37011809/164207423-a2de53c7-a372-4ea0-8abe-79cc4e750129.PNG)  
+  ![IMG_0381](https://user-images.githubusercontent.com/37011809/164207423-a2de53c7-a372-4ea0-8abe-79cc4e750129.PNG)  
