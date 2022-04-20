@@ -30,3 +30,5 @@
 - SDWebImage
 - KMPlaceholderTextView
 - YoutubePlayer-in-WKWebView
+## Bugs
+- 앱이 background에서 foreground로 돌아올 때, 동영상 뷰가 blank가 되는 현상이 간혹 발생함.
