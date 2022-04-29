@@ -21,14 +21,14 @@ enum UploadType: String {
 class UploadViewController: UIViewController {
     let viewModel: UploadViewModelType?
     let uploadType: UploadType
-    let prepost: ViewPost?
+    let prepost: Post?
     var delegate: RefreshDelegate?
     var disposeBag = DisposeBag()
     
     init(viewModel: UploadViewModelType = UploadViewModel(), uploadType: UploadType, prepost: ViewPost? = nil) {
         self.viewModel = viewModel
         self.uploadType = uploadType
-        self.prepost = prepost
+        self.prepost = prepost?.ViewPostIntoUploadingPost()
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -61,12 +61,11 @@ class UploadViewController: UIViewController {
     }()
     
     func configureUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
         navigationController?.navigationBar.tintColor = .white
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: nil)
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "완료", style: .plain, target: self, action: nil)
         navigationController?.navigationBar.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
-        view.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
         uploadTableView.delegate = self
         uploadTableView.dataSource = self
         
@@ -94,8 +93,8 @@ class UploadViewController: UIViewController {
             .withLatestFrom(viewModel.writtenPost)
             .subscribe(onNext: { [weak self] written in
                 if written.url.youTubeId == nil { self?.showAlert("유효하지 않은 유튜브 URL입니다.", ""); return }
-                else if written.champion1 == "" { self?.showAlert("작성자의 챔피언을 입력하세요.", ""); return }
-                else if written.champion2 == "" { self?.showAlert("상대방의 챔피언을 입력하세요.", ""); return }
+                else if written.champion1 == "" { self?.showAlert("본인의 주장을 입력하세요.", ""); return }
+                else if written.champion2 == "" { self?.showAlert("상대방의 주장을 입력하세요.", ""); return }
                 else if written.text == "" { self?.showAlert("본문을 작성해주세요.", ""); return }
                 
                 switch self?.uploadType {
@@ -155,7 +154,7 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                 uploadcell.textView.text = prepost?.url
             }
         case 1:
-            uploadcell.textView.placeholder = "작성자 챔피언."
+            uploadcell.textView.placeholder = "본인의 주장."
             uploadcell.textView.rx.didChange
                 .withLatestFrom(viewModel.writtenPost)
                 .subscribe(onNext: { (written) in
@@ -168,7 +167,7 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                 uploadcell.textView.text = prepost?.champion1
             }
         case 2:
-            uploadcell.textView.placeholder = "상대방 챔피언."
+            uploadcell.textView.placeholder = "상대방의 주장."
             uploadcell.textView.rx.didChange
                 .withLatestFrom(viewModel.writtenPost)
                 .subscribe(onNext: { (written) in
@@ -183,14 +182,35 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
         case 3:
             uploadcell.textView.placeholder = "당시 상황에 대해 자세히 적어주세요."
             uploadcell.blankView.heightAnchor.constraint(equalToConstant: view.frame.height * 0.6).isActive = true
+            
             uploadcell.textView.rx.didChange
                 .withLatestFrom(viewModel.writtenPost)
-                .subscribe(onNext: { (written) in
+                .subscribe(onNext: { [weak self] written in
+                    guard let self = self else { return }
                     var newWritten = written
                     newWritten.text = uploadcell.textView.text
                     viewModel.writePost.onNext(newWritten)
+                    
+                    let size = uploadcell.textView.bounds.size
+//                    let newHeight = self.requiredHeight(for: uploadcell.textView.text, width: size.width, font: uploadcell.textView.font)
+                    let newSize = uploadcell.textView.sizeThatFits(CGSize(width: size.width, height: CGFloat.greatestFiniteMagnitude))
+                    if size.height < newSize.height + 0.5 { //왜 0.5차이가 나는지 모름.
+                        let offset = newSize.height - size.height
+                        let currentOffset = self.uploadTableView.contentOffset
+                        UIView.performWithoutAnimation {
+                            self.uploadTableView.contentOffset = CGPoint(x: currentOffset.x, y: currentOffset.y + offset)
+                        }
+                        
+                    }
                 })
                 .disposed(by: disposeBag)
+            
+            uploadcell.textView.rx.didBeginEditing
+                .subscribe(onNext: {
+                    self.uploadTableView.scrollToRow(at: indexPath, at: UITableView.ScrollPosition.bottom, animated: false)
+                })
+                .disposed(by: disposeBag)
+                    
             if uploadType == .edit {
                 uploadcell.textView.text = prepost?.text
             }
@@ -215,11 +235,10 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
             .disposed(by: disposeBag)
         
         if uploadType == .edit, let prepost = prepost {
-            viewModel.writePost.onNext(prepost.ViewPostIntoUploadingPost(viewPost: prepost))
+            viewModel.writePost.onNext(prepost)
         }
         
         return uploadcell
     }
 }
-
 

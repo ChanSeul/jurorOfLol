@@ -12,15 +12,15 @@ import RxCocoa
 
 
 protocol ThreadViewModelType {
-    var isBackground: BehaviorRelay<Bool> { get }
+    var becomeActive: BehaviorRelay<Bool> { get }
 }
 
 class ThreadViewModel: ThreadViewModelType {
     static let shared = ThreadViewModel()
 
-    let isBackground: BehaviorRelay<Bool>
+    let becomeActive: BehaviorRelay<Bool>
     
     init() {
-        isBackground = BehaviorRelay<Bool>(value: false)
+        becomeActive = BehaviorRelay<Bool>(value: false)
     }
 }

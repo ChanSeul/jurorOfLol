@@ -100,13 +100,13 @@ class HomeViewController: UIViewController {
             .disposed(by: disposeBag)
         
         // MARK: From background into foreground
-        ThreadViewModel.shared.isBackground
-            .subscribe(onNext: { [weak self] isBackground in
-                if isBackground == true {
-                    self?.viewModel.fetchInitial.onNext(())
-                }
-            })
-            .disposed(by: disposeBag)
+//        ThreadViewModel.shared.isBackground
+//            .subscribe(onNext: { [weak self] isBackground in
+//                if isBackground == true {
+//                    self?.viewModel.fetchInitial.onNext(())
+//                }
+//            })
+//            .disposed(by: disposeBag)
     }
     
     //MARK: UI
@@ -270,5 +270,3 @@ extension HomeViewController: RefreshDelegate {
             .disposed(by: disposeBag)
     }
 }
-
-

@@ -67,7 +67,7 @@ class PollView: UIView {
         championLabel.font = UIFont.systemFont(ofSize: 14)
         championLabel.translatesAutoresizingMaskIntoConstraints = false
         championLabel.textColor = .systemGray
-        //championLabel.text = "그레이브즈"
+        championLabel.numberOfLines = 2
         return championLabel
     }()
 
@@ -76,9 +76,14 @@ class PollView: UIView {
         percentageLabel.font = UIFont.systemFont(ofSize: 14)
         percentageLabel.translatesAutoresizingMaskIntoConstraints = false
         percentageLabel.textColor = .systemGray
-        //percentageLabel.text = "36%"
         return percentageLabel
     }()
+    
+//    let containerView: UIView = {
+//        let containerView = UIView()
+//        containerView.translatesAutoresizingMaskIntoConstraints = false
+//        return containerView
+//    }()
     
     func configureUI() {
         layer.borderWidth = 1
@@ -110,6 +115,8 @@ class PollView: UIView {
             percentageLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -margin)
         ])
         
+        
     }
 }
+
 

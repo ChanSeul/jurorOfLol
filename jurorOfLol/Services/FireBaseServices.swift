@@ -10,17 +10,17 @@ import Firebase
 import RxSwift
 
 protocol FirebaseServiceProtocol {
-    func fetchInitial(completion: @escaping (Result<[post], Error>) -> Void)
-    func fetchInitialRx() -> Observable<[post]>
-    func fetchNext(completion: @escaping (Result<[post], Error>) -> Void)
-    func fetchNextRx() -> Observable<[post]>
-    func fetchInitialByVotes(completion: @escaping (Result<[post], Error>) -> Void)
-    func fetchInitialByVotesRx() -> Observable<[post]>
+    func fetchInitial(completion: @escaping (Result<[Post], Error>) -> Void)
+    func fetchInitialRx() -> Observable<[Post]>
+    func fetchNext(completion: @escaping (Result<[Post], Error>) -> Void)
+    func fetchNextRx() -> Observable<[Post]>
+    func fetchInitialByVotes(completion: @escaping (Result<[Post], Error>) -> Void)
+    func fetchInitialByVotesRx() -> Observable<[Post]>
     func deletePost(docId: String, completion: @escaping () -> Void)
     
     //This is for MyPostViewModel
-    func fetchMyInitialPosts(completion: @escaping (Result<[post], Error>) -> Void)
-    func fetchMyInitialPostsRx() -> Observable<[post]>
+    func fetchMyInitialPosts(completion: @escaping (Result<[Post], Error>) -> Void)
+    func fetchMyInitialPostsRx() -> Observable<[Post]>
 }
 
 class FireBaseService: FirebaseServiceProtocol {
@@ -29,7 +29,7 @@ class FireBaseService: FirebaseServiceProtocol {
     var query: Query?
     //var dataMayContinue = true
     
-    func fetchInitial(completion: @escaping (Result<[post], Error>) -> Void) {
+    func fetchInitial(completion: @escaping (Result<[Post], Error>) -> Void) {
         let db = Firestore.firestore()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
@@ -37,7 +37,7 @@ class FireBaseService: FirebaseServiceProtocol {
         self.query = db.collection("posts")
             .order(by: "date", descending: true)
             .limit(to: pageSize)
-        var nextPosts = [post]()
+        var nextPosts = [Post]()
         self.query?.getDocuments() { [weak self] (querySnapshot, error) in
             guard let self = self else { return }
             
@@ -54,19 +54,13 @@ class FireBaseService: FirebaseServiceProtocol {
                 for document in querySnapshot!.documents {
                     guard let url = document.data()["url"] as? String else { continue }
                     guard let champion1 = document.data()["champion1"] as? String else { continue }
-                    guard let champion1Votes = document.data()["champion1Votes"] as? Double else { continue }
                     guard let champion2 = document.data()["champion2"] as? String else { continue }
-                    guard let champion2Votes = document.data()["champion2Votes"] as? Double else { continue }
-                    guard let totalVotes = document.data()["totalVotes"] as? Double else { continue }
                     guard let text = document.data()["text"] as? String else { continue }
                     guard let date = document.data()["date"] as? Double else { continue }
                     guard let uid = document.data()["userID"] as? String else { continue }
-                    nextPosts.append(post(url: url,
+                    nextPosts.append(Post(url: url,
                                           champion1: champion1,
                                           champion2: champion2,
-                                          champion1Votes: champion1Votes,
-                                          champion2Votes: champion2Votes,
-                                          totalVotes: totalVotes,
                                           text: text,
                                           date: formatter.string(from: Date(timeIntervalSince1970: date)),
                                           docId: document.documentID,
@@ -76,7 +70,7 @@ class FireBaseService: FirebaseServiceProtocol {
             }
         }
     }
-    func fetchInitialRx() -> Observable<[post]> {
+    func fetchInitialRx() -> Observable<[Post]> {
         return Observable.create { (observer) -> Disposable in
             self.fetchInitial() { result in
                 switch result {
@@ -90,11 +84,11 @@ class FireBaseService: FirebaseServiceProtocol {
             return Disposables.create()
         }
     }
-    func fetchNext(completion: @escaping (Result<[post], Error>) -> Void) {
+    func fetchNext(completion: @escaping (Result<[Post], Error>) -> Void) {
         guard let _ = cursor, let _ = query else { return }
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        var nextPosts = [post]()
+        var nextPosts = [Post]()
         
         self.query?.getDocuments { [weak self] (querySnapshot, error) in
             guard let self = self else { return }
@@ -111,19 +105,13 @@ class FireBaseService: FirebaseServiceProtocol {
                 for document in querySnapshot!.documents {
                     guard let url = document.data()["url"] as? String else { continue }
                     guard let champion1 = document.data()["champion1"] as? String else { continue }
-                    guard let champion1Votes = document.data()["champion1Votes"] as? Double else { continue }
                     guard let champion2 = document.data()["champion2"] as? String else { continue }
-                    guard let champion2Votes = document.data()["champion2Votes"] as? Double else { continue }
-                    guard let totalVotes = document.data()["totalVotes"] as? Double else { continue }
                     guard let text = document.data()["text"] as? String else { continue }
                     guard let date = document.data()["date"] as? Double else { continue }
                     guard let uid = document.data()["userID"] as? String else { continue }
-                    nextPosts.append(post(url: url,
+                    nextPosts.append(Post(url: url,
                                           champion1: champion1,
                                           champion2: champion2,
-                                          champion1Votes: champion1Votes,
-                                          champion2Votes: champion2Votes,
-                                          totalVotes: totalVotes,
                                           text: text,
                                           date: formatter.string(from: Date(timeIntervalSince1970: date)),
                                           docId: document.documentID,
@@ -133,7 +121,7 @@ class FireBaseService: FirebaseServiceProtocol {
             }
         }
     }
-    func fetchNextRx() -> Observable<[post]> {
+    func fetchNextRx() -> Observable<[Post]> {
         return Observable.create { (observer) -> Disposable in
             self.fetchNext() { result in
                 switch result {
@@ -177,7 +165,7 @@ class FireBaseService: FirebaseServiceProtocol {
     
     // This is for MyPostsControllerViewModel
     
-    func fetchMyInitialPosts(completion: @escaping (Result<[post], Error>) -> Void) {
+    func fetchMyInitialPosts(completion: @escaping (Result<[Post], Error>) -> Void) {
         let db = Firestore.firestore()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
@@ -187,7 +175,7 @@ class FireBaseService: FirebaseServiceProtocol {
             .whereField("userID", isEqualTo: user.uid)
             .order(by: "date", descending: true)
             .limit(to: pageSize)
-        var nextPosts = [post]()
+        var nextPosts = [Post]()
         self.query?.getDocuments() { [weak self] (querySnapshot, error) in
             guard let self = self else { return }
             
@@ -204,19 +192,13 @@ class FireBaseService: FirebaseServiceProtocol {
                 for document in querySnapshot!.documents {
                     guard let url = document.data()["url"] as? String else { continue }
                     guard let champion1 = document.data()["champion1"] as? String else { continue }
-                    guard let champion1Votes = document.data()["champion1Votes"] as? Double else { continue }
                     guard let champion2 = document.data()["champion2"] as? String else { continue }
-                    guard let champion2Votes = document.data()["champion2Votes"] as? Double else { continue }
-                    guard let totalVotes = document.data()["totalVotes"] as? Double else { continue }
                     guard let text = document.data()["text"] as? String else { continue }
                     guard let date = document.data()["date"] as? Double else { continue }
                     guard let uid = document.data()["userID"] as? String else { continue }
-                    nextPosts.append(post(url: url,
+                    nextPosts.append(Post(url: url,
                                           champion1: champion1,
                                           champion2: champion2,
-                                          champion1Votes: champion1Votes,
-                                          champion2Votes: champion2Votes,
-                                          totalVotes: totalVotes,
                                           text: text,
                                           date: formatter.string(from: Date(timeIntervalSince1970: date)),
                                           docId: document.documentID,
@@ -226,7 +208,7 @@ class FireBaseService: FirebaseServiceProtocol {
             }
         }
     }
-    func fetchMyInitialPostsRx() -> Observable<[post]> {
+    func fetchMyInitialPostsRx() -> Observable<[Post]> {
         return Observable.create { (observer) -> Disposable in
             self.fetchMyInitialPosts() { result in
                 switch result {
@@ -240,7 +222,7 @@ class FireBaseService: FirebaseServiceProtocol {
             return Disposables.create()
         }
     }
-    func fetchInitialByVotes(completion: @escaping (Result<[post], Error>) -> Void) {
+    func fetchInitialByVotes(completion: @escaping (Result<[Post], Error>) -> Void) {
         let db = Firestore.firestore()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
@@ -248,7 +230,7 @@ class FireBaseService: FirebaseServiceProtocol {
         self.query = db.collection("posts")
             .order(by: "totalVotes", descending: true)
             .limit(to: pageSize)
-        var nextPosts = [post]()
+        var nextPosts = [Post]()
         self.query?.getDocuments() { [weak self] (querySnapshot, error) in
             guard let self = self else { return }
             
@@ -265,19 +247,13 @@ class FireBaseService: FirebaseServiceProtocol {
                 for document in querySnapshot!.documents {
                     guard let url = document.data()["url"] as? String else { continue }
                     guard let champion1 = document.data()["champion1"] as? String else { continue }
-                    guard let champion1Votes = document.data()["champion1Votes"] as? Double else { continue }
                     guard let champion2 = document.data()["champion2"] as? String else { continue }
-                    guard let champion2Votes = document.data()["champion2Votes"] as? Double else { continue }
-                    guard let totalVotes = document.data()["totalVotes"] as? Double else { continue }
                     guard let text = document.data()["text"] as? String else { continue }
                     guard let date = document.data()["date"] as? Double else { continue }
                     guard let uid = document.data()["userID"] as? String else { continue }
-                    nextPosts.append(post(url: url,
+                    nextPosts.append(Post(url: url,
                                           champion1: champion1,
                                           champion2: champion2,
-                                          champion1Votes: champion1Votes,
-                                          champion2Votes: champion2Votes,
-                                          totalVotes: totalVotes,
                                           text: text,
                                           date: formatter.string(from: Date(timeIntervalSince1970: date)),
                                           docId: document.documentID,
@@ -288,7 +264,7 @@ class FireBaseService: FirebaseServiceProtocol {
         }
     }
     
-    func fetchInitialByVotesRx() -> Observable<[post]> {
+    func fetchInitialByVotesRx() -> Observable<[Post]> {
         return Observable.create { (observer) -> Disposable in
             self.fetchInitialByVotes() { result in
                 switch result {

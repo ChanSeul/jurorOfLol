@@ -31,6 +31,14 @@ extension UIViewController {
         alertVC.addAction(UIAlertAction(title: "확인", style: .default))
         present(alertVC, animated: true, completion: nil)
     }
+    public func requiredHeight(for text: String, width: CGFloat, font: UIFont) -> CGFloat {
+        let label = UILabel(frame: CGRect(x: 0, y: 0, width: width, height: CGFloat.greatestFiniteMagnitude))
+        label.numberOfLines = 0
+        label.font = font
+        label.text = text
+        label.sizeToFit()
+        return label.frame.height
+      }
 }
 
 //extension UIButton {
@@ -59,7 +67,7 @@ extension UILabel {
     private var highlightColor: UIColor { return .lightGray }
 
     private var attributes: [NSAttributedString.Key: Any] {
-        return [.font: self.font ?? .systemFont(ofSize: 16)]
+        return [.font: self.font ?? .systemFont(ofSize: 15)]
     }
     
     public func requiredHeight(for text: String) -> CGFloat {
