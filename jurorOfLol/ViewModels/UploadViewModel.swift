@@ -13,8 +13,8 @@ import FirebaseFirestore
 protocol UploadViewModelType {
     var uploadPost: AnyObserver<Void> { get }
     var editPost: AnyObserver<String> { get }
-    var writePost: AnyObserver<post> { get }
-    var writtenPost: Observable<post> { get }
+    var writePost: AnyObserver<Post> { get }
+    var writtenPost: Observable<Post> { get }
 }
 
 class UploadViewModel: UploadViewModelType{
@@ -22,16 +22,16 @@ class UploadViewModel: UploadViewModelType{
     
     let uploadPost: AnyObserver<Void>
     let editPost: AnyObserver<String>
-    let writePost: AnyObserver<post>
+    let writePost: AnyObserver<Post>
     
-    let writtenPost: Observable<post>
+    let writtenPost: Observable<Post>
     
     init() {
         let uploadingPost = PublishSubject<Void>()
         let uploadingVoteData = PublishSubject<String>()
         let editingPost = PublishSubject<String>()
-        let writtingPost = PublishSubject<post>()
-        let currentWrittenPost = BehaviorSubject<post>(value: post(url: "", champion1: "", champion2: "", text: "", date: "", docId: "", userId: ""))
+        let writtingPost = PublishSubject<Post>()
+        let currentWrittenPost = BehaviorSubject<Post>(value: Post(url: "", champion1: "", champion2: "", text: "", date: "", docId: "", userId: ""))
         
         //INPUT
         uploadPost = uploadingPost.asObserver()
@@ -45,11 +45,9 @@ class UploadViewModel: UploadViewModelType{
                                                                        "url": currentWrittenPost.url.youTubeId!,
                                                                        "champion1": currentWrittenPost.champion1,
                                                                        "champion2": currentWrittenPost.champion2,
-                                                                       "champion1Votes": 0,
-                                                                       "champion2Votes": 0,
-                                                                       "totalVotes": 0,
                                                                        "text": currentWrittenPost.text,
-                                                                       "date": Date().timeIntervalSince1970])
+                                                                       "date": Date().timeIntervalSince1970,
+                                                                       "totalVotes": 0])
                 
                 uploadingVoteData.onNext(docRef.documentID)
             })
@@ -60,12 +58,9 @@ class UploadViewModel: UploadViewModelType{
                 let db = Firestore.firestore()
                 db.collection("userSetForVoteByPost").document(docId).setData(["champion1VotesUsers": [],
                                                                                "champion2VotesUsers": []])
-//                guard let user = Auth.auth().currentUser else { return }
-//                var initial = [String:Any]()
-//                initial["voteData."+docId] = 0
-//                db.collection("voteDataByUsers").document(user.uid).setData(["voteData": nil])
-//                db.collection("voteDataByPost").document(docId).setData(["champion1Votes": 0,
-//                                                                         "champion2Votes": 0])
+                db.collection("voteDataByPost").document(docId).setData(["champion1Votes": 0,
+                                                                         "champion2Votes": 0,
+                                                                         "totalVotes": 0])
             })
             .disposed(by: disposeBag)
         

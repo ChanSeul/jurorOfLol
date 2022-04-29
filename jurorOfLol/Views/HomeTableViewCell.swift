@@ -23,7 +23,6 @@ protocol HomeTableViewCellDelegate {
 class HomeTableViewCell: UITableViewCell {
     var viewModel: HomeTableViewCellViewModelType
     static let identifier = "HomeTableViewCell"
-    //var cellDisposeBag = DisposeBag()
     var delegate: HomeTableViewCellDelegate?
     
     var disposeBag = DisposeBag()
@@ -37,19 +36,25 @@ class HomeTableViewCell: UITableViewCell {
         self.viewModel = HomeTableViewCellViewModel()
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         configureUI()
-        ThreadViewModel.shared.isBackground
-            .subscribe(onNext: { [weak self] isBackground in
-                if isBackground == true {
-                    self?.isLoaded = false
+        ThreadViewModel.shared.becomeActive
+            .withLatestFrom(data) { ($0, $1) }
+            .subscribe(onNext: { [weak self] (becomeActive, currentPost) in
+                if becomeActive == true {
+                    self?.videoContainerView.getCurrentTime() { (time, error) in
+                        if let _ = error {
+                            self?.videoContainerView.load(withVideoId: currentPost.url) //빈 화면을 로드해서 덮어버림
+                        }
+                    }
+                    print("complete")
                 }
             })
             .disposed(by: disposeBag)
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("cell init error")
     }
- 
+    
     func bind() {
         data.asDriver() { _ in .never() }
             .drive(onNext: { [weak self] currentPost in
@@ -57,6 +62,13 @@ class HomeTableViewCell: UITableViewCell {
                 
                 if self.isLoaded == true {
                     self.videoContainerView.cueVideo(byId: currentPost.url, startSeconds: 0, suggestedQuality: .default)
+                    // cue 에러나서 빈 화면 출력되는 케이스를 getCurrentTime으로 감지함.
+                    self.videoContainerView.getCurrentTime() { (time, error) in
+                        if let _ = error {
+                            self.videoContainerView.load(withVideoId: currentPost.url) //빈 화면을 로드해서 덮어버림
+                        }
+                    }
+                    
                 }
                 else {
                     self.videoContainerView.load(withVideoId: currentPost.url)
@@ -65,7 +77,13 @@ class HomeTableViewCell: UITableViewCell {
                 self.postDate.text = currentPost.date
                 self.poll1.championLabel.text = currentPost.champion1
                 self.poll2.championLabel.text = currentPost.champion2
-                self.postText.appendReadmore(after: currentPost.text, trailingContent: .readmore)
+                let attrString = NSMutableAttributedString(string: currentPost.text)
+                let paragraphStyle = NSMutableParagraphStyle()
+                paragraphStyle.lineSpacing = 4
+                attrString.addAttribute(NSAttributedString.Key.paragraphStyle, value: paragraphStyle, range: NSMakeRange(0, attrString.length))
+                self.postText.attributedText = attrString
+                self.postText.appendReadmore(after: self.postText.text!, trailingContent: .readmore)
+                
                 
                 if let user = Auth.auth().currentUser {
                     self.viewModel.fetchVoteDataOfCurrentUserForCurrentPost.onNext((userId: user.uid, docId: currentPost.docId, fromPollNumber: -1))
@@ -324,14 +342,12 @@ class HomeTableViewCell: UITableViewCell {
         // width 설정 안하면 첫 로딩화면에서 UILabel의 width가 0이돼서 UILabel.appendReadmore()가 제대로 작동 안하게됨.
         let postText = UILabel(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width - 36, height: 0))
         postText.translatesAutoresizingMaskIntoConstraints = false
-        postText.font = UIFont.systemFont(ofSize: 16)
+        postText.font = UIFont.systemFont(ofSize: 15)
         postText.textColor = .white
-//        postText.lineBreakMode = .byTruncatingTail
-//        postText.numberOfLines = 0
         return postText
     }()
     
-    let videoContainerView: WKYTPlayerView = {
+    var videoContainerView: WKYTPlayerView = {
         let videoContainerView = WKYTPlayerView()
         videoContainerView.translatesAutoresizingMaskIntoConstraints = false
         videoContainerView.clipsToBounds = true
@@ -344,15 +360,6 @@ class HomeTableViewCell: UITableViewCell {
         seperatorView.translatesAutoresizingMaskIntoConstraints = false
         seperatorView.backgroundColor = .systemGray4
         return seperatorView
-    }()
-    
-    let pollLabel: UILabel = {
-        let pollLabel = UILabel()
-        pollLabel.translatesAutoresizingMaskIntoConstraints = false
-        pollLabel.font = UIFont.systemFont(ofSize: 16)
-        pollLabel.textColor = .lightGray
-        pollLabel.text = "누구의 플레이의 동의하나요?"
-        return pollLabel
     }()
     
     var poll1 = PollView()
@@ -375,7 +382,6 @@ class HomeTableViewCell: UITableViewCell {
         containerView.addSubview(postDate)
         containerView.addSubview(postText)
         containerView.addSubview(videoContainerView)
-        containerView.addSubview(pollLabel)
         containerView.addSubview(poll1)
         containerView.addSubview(poll2)
         containerView.addSubview(editBtn)
@@ -400,7 +406,7 @@ class HomeTableViewCell: UITableViewCell {
             postText.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin),
             postText.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
 //            postText.widthAnchor.constraint(equalTo: self.widthAnchor, constant: -margin * 2),
-            postText.topAnchor.constraint(equalTo: postDate.bottomAnchor),
+            postText.topAnchor.constraint(equalTo: postDate.bottomAnchor, constant: margin / 2),
             postText.heightAnchor.constraint(greaterThanOrEqualToConstant: 1),
             
             videoContainerView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin),
@@ -408,17 +414,15 @@ class HomeTableViewCell: UITableViewCell {
             videoContainerView.topAnchor.constraint(equalTo: postText.bottomAnchor, constant: margin),
             videoContainerView.heightAnchor.constraint(equalTo: containerView.widthAnchor, multiplier: 9 / 16),
             
-            pollLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin * 1.5),
-            pollLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
-            pollLabel.topAnchor.constraint(equalTo: videoContainerView.bottomAnchor, constant: margin),
-            
             poll1.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin),
             poll1.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
-            poll1.topAnchor.constraint(equalTo: pollLabel.bottomAnchor, constant: margin / 4),
+            poll1.topAnchor.constraint(equalTo: videoContainerView.bottomAnchor, constant: margin),
+            poll1.heightAnchor.constraint(greaterThanOrEqualToConstant: 1),
             
             poll2.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin),
             poll2.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),
             poll2.topAnchor.constraint(equalTo: poll1.bottomAnchor, constant: margin / 2),
+            poll2.heightAnchor.constraint(greaterThanOrEqualToConstant: 1),
             
             numberOfVotesLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: margin * 1.5),
             numberOfVotesLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -margin),

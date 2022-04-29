@@ -19,6 +19,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         self.window?.makeKeyAndVisible()
         
     }
-
+//
+//    func sceneDidEnterBackground(_ scene: UIScene) {
+//        print("background")
+//    }
+//    func sceneWillEnterForeground(_ scene: UIScene) {
+//        print("foreground")
+//    }
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        print("becomActive")
+        ThreadViewModel.shared.becomeActive.accept(true)
+    }
+//    func sceneWillResignActive(_ scene: UIScene) {
+////        ThreadViewModel.shared.isBackground.accept(true)
+//        print("resign")
+//    }
 }
 

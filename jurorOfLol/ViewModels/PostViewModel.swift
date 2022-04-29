@@ -21,30 +21,24 @@ enum voteUpdateType: String {
 struct ViewPost {
     var url: String
     var champion1: String
-    var champion1Votes: Double
     var champion2: String
-    var champion2Votes: Double
-    var totalVotes: Double
     var text: String
     var date: String
     var docId: String
     var userId: String
     
-    init(post:post) {
+    init(post:Post) {
         self.url = post.url
         self.champion1 = post.champion1
-        self.champion1Votes = post.champion1Votes
         self.champion2 = post.champion2
-        self.champion2Votes = post.champion2Votes
-        self.totalVotes = post.totalVotes
         self.text = post.text
         self.date = post.date
         self.docId = post.docId
         self.userId = post.userId
     }
     
-    func ViewPostIntoUploadingPost(viewPost: ViewPost) -> post {
-        return post(url: "https://youtu.be/" + viewPost.url, champion1: viewPost.champion1, champion2: viewPost.champion2, champion1Votes: viewPost.champion1Votes, champion2Votes: viewPost.champion2Votes, totalVotes: viewPost.totalVotes, text: viewPost.text, date: viewPost.date, docId: viewPost.docId, userId: viewPost.userId)
+    func ViewPostIntoUploadingPost() -> Post {
+        return Post(url: "https://youtu.be/" + self.url, champion1: self.champion1, champion2: self.champion2, text: self.text, date: self.date, docId: self.docId, userId: self.userId)
     }
 }
 

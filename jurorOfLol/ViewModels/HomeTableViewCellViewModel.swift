@@ -67,6 +67,27 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                 Task {
                     let result = await withTaskGroup(of: Void.self, body: { taskGroup in
                         taskGroup.addTask {
+                            let docRef = db.collection("posts").document(docId)
+                            var update = [String:Any]()
+                            switch updataType {
+                            case .onlyAddFirst:
+                                update["totalVotes"] = FieldValue.increment(Int64(1))
+                            case .onlyDecreaseFirst:
+                                update["totalVotes"] = FieldValue.increment(Int64(-1))
+                            case .onlyAddSecond:
+                                update["totalVotes"] = FieldValue.increment(Int64(1))
+                            case .onlyDecreaseSecond:
+                                update["totalVotes"] = FieldValue.increment(Int64(-1))
+                            case .addFirstDecreaseSecond:
+                                break
+                            case .decreaseFirstAddSecond:
+                                break
+                            }
+                            docRef.updateData(update) { err in
+                                if let _ = err { print("updating posts error occured") }
+                            }
+                        }
+                        taskGroup.addTask {
                             let docRef = db.collection("voteDataByUsers").document(userId)
                             var update = [String:Any]()
                             switch updataType {
@@ -88,7 +109,7 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                             }
                         }
                         taskGroup.addTask {
-                            let docRef = db.collection("posts").document(docId)
+                            let docRef = db.collection("voteDataByPost").document(docId)
                             var update = [String:Any]()
                             switch updataType {
                             case .onlyAddFirst:
@@ -169,26 +190,6 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
                                     }
                                 }
                             }
-//                            if fromPollNumber == 1 {
-//                                docRef.updateData([
-//                                    "champion1VotesUsers": FieldValue.arrayUnion([userId]),
-//                                    "champion2VotesUsers": FieldValue.arrayRemove([userId])
-//                                ]) { err in
-//                                    if let _ = err {
-//                                        print("updating userSetForVoteByPost error occured")
-//                                    }
-//                                }
-//                            }
-//                            else if fromPollNumber == 2 {
-//                                docRef.updateData([
-//                                    "champion1VotesUsers": FieldValue.arrayRemove([userId]),
-//                                    "champion2VotesUsers": FieldValue.arrayUnion([userId])
-//                                ]) { err in
-//                                    if let _ = err {
-//                                        print("updating userSetForVoteByPost error occured")
-//                                    }
-//                                }
-//                            }
                         }
                     })
                     activating.onNext(false)
@@ -199,7 +200,7 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
         fetchingVoteDataOfCurrentUserForCurrentPost
             .subscribe(onNext: { userId, docId, fromPollNumber in
                 let docRef = db.collection("voteDataByUsers").document(userId)
-                docRef.getDocument() { [weak self] document, error in
+                docRef.getDocument() { (document, error) in
                     if let document = document, document.exists {
                         let key = "voteData." + docId
                         let voteData = document.get(key) as? Int
@@ -214,7 +215,7 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
         
         fetchingVoteCountOfCurrentPost
             .subscribe(onNext: { (docId) in
-                let docRef = db.collection("posts").document(docId)
+                let docRef = db.collection("voteDataByPost").document(docId)
                 docRef.getDocument{ [weak self] document, error in
                     if let document = document, document.exists {
                         guard let count1 = document.get("champion1Votes") as? Double else { print("fetchingVoteCountOfCurrentPost error"); return }

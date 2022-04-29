@@ -13,6 +13,7 @@
 		D83E484A27CF88E700549FA3 /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83E484927CF88E700549FA3 /* UserModel.swift */; };
 		D83E484C27CFB32400549FA3 /* StaticSettingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83E484B27CFB32400549FA3 /* StaticSettingTableViewCell.swift */; };
 		D83E484E27CFBC1100549FA3 /* SwitchSettingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83E484D27CFBC1100549FA3 /* SwitchSettingTableViewCell.swift */; };
+		D84E794B281C666A001963C6 /* PostModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D84E794A281C666A001963C6 /* PostModel.swift */; };
 		D85BCBF327DC15500000D486 /* ViewUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85BCBF227DC15500000D486 /* ViewUser.swift */; };
 		D85BCBF727DF61D70000D486 /* UploadViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D85BCBF627DF61D70000D486 /* UploadViewModel.swift */; };
 		D876CDB527F08A1800EDC146 /* ThreadVIewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D876CDB427F08A1800EDC146 /* ThreadVIewModel.swift */; };
@@ -20,7 +21,6 @@
 		D8AD5EAE27CD2F450002CB7A /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5EAD27CD2F450002CB7A /* SceneDelegate.swift */; };
 		D8AD5EB527CD2F460002CB7A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8AD5EB427CD2F460002CB7A /* Assets.xcassets */; };
 		D8AD5EC627CD30C00002CB7A /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5EC527CD30C00002CB7A /* Utils.swift */; };
-		D8AD5EC827CD30EC0002CB7A /* PostModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5EC727CD30EC0002CB7A /* PostModel.swift */; };
 		D8AD5ECA27CD31130002CB7A /* FireBaseServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5EC927CD31130002CB7A /* FireBaseServices.swift */; };
 		D8AD5ECC27CD31330002CB7A /* HomeTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5ECB27CD31330002CB7A /* HomeTableViewCell.swift */; };
 		D8AD5ECE27CD314A0002CB7A /* PollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AD5ECD27CD314A0002CB7A /* PollView.swift */; };
@@ -47,6 +47,7 @@
 		D83E484927CF88E700549FA3 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		D83E484B27CFB32400549FA3 /* StaticSettingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSettingTableViewCell.swift; sourceTree = "<group>"; };
 		D83E484D27CFBC1100549FA3 /* SwitchSettingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchSettingTableViewCell.swift; sourceTree = "<group>"; };
+		D84E794A281C666A001963C6 /* PostModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostModel.swift; sourceTree = "<group>"; };
 		D85BCBF227DC15500000D486 /* ViewUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewUser.swift; sourceTree = "<group>"; };
 		D85BCBF627DF61D70000D486 /* UploadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadViewModel.swift; sourceTree = "<group>"; };
 		D876CDB427F08A1800EDC146 /* ThreadVIewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadVIewModel.swift; sourceTree = "<group>"; };
@@ -56,7 +57,6 @@
 		D8AD5EB427CD2F460002CB7A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D8AD5EB927CD2F460002CB7A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D8AD5EC527CD30C00002CB7A /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
-		D8AD5EC727CD30EC0002CB7A /* PostModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostModel.swift; sourceTree = "<group>"; };
 		D8AD5EC927CD31130002CB7A /* FireBaseServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FireBaseServices.swift; sourceTree = "<group>"; };
 		D8AD5ECB27CD31330002CB7A /* HomeTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTableViewCell.swift; sourceTree = "<group>"; };
 		D8AD5ECD27CD314A0002CB7A /* PollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollView.swift; sourceTree = "<group>"; };
@@ -196,8 +196,8 @@
 		D8AD5EC327CD30870002CB7A /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				D8AD5EC727CD30EC0002CB7A /* PostModel.swift */,
 				D83E484927CF88E700549FA3 /* UserModel.swift */,
+				D84E794A281C666A001963C6 /* PostModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -328,9 +328,9 @@
 				D876CDB527F08A1800EDC146 /* ThreadVIewModel.swift in Sources */,
 				D8AD5EDC27CD32070002CB7A /* UploadViewController.swift in Sources */,
 				D8E23D7C27EA4D2900FA0A14 /* MyPostsViewModel.swift in Sources */,
-				D8AD5EC827CD30EC0002CB7A /* PostModel.swift in Sources */,
 				D8AD5ECC27CD31330002CB7A /* HomeTableViewCell.swift in Sources */,
 				D8AD5ED827CD31D30002CB7A /* LoginController.swift in Sources */,
+				D84E794B281C666A001963C6 /* PostModel.swift in Sources */,
 				D8AD5ED027CD31630002CB7A /* UploadCell.swift in Sources */,
 				D8AD5ECE27CD314A0002CB7A /* PollView.swift in Sources */,
 				D83E484827CEB45300549FA3 /* SettingsController.swift in Sources */,
