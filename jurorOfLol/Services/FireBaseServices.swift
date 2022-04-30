@@ -8,19 +8,19 @@
 import Foundation
 import Firebase
 import RxSwift
+import FirebaseFirestore
 
 protocol FirebaseServiceProtocol {
     func fetchInitial(completion: @escaping (Result<[Post], Error>) -> Void)
     func fetchInitialRx() -> Observable<[Post]>
-    func fetchNext(completion: @escaping (Result<[Post], Error>) -> Void)
-    func fetchNextRx() -> Observable<[Post]>
     func fetchInitialByVotes(completion: @escaping (Result<[Post], Error>) -> Void)
     func fetchInitialByVotesRx() -> Observable<[Post]>
-    func deletePost(docId: String, completion: @escaping () -> Void)
-    
-    //This is for MyPostViewModel
     func fetchMyInitialPosts(completion: @escaping (Result<[Post], Error>) -> Void)
     func fetchMyInitialPostsRx() -> Observable<[Post]>
+    func fetchNext(completion: @escaping (Result<[Post], Error>) -> Void)
+    func fetchNextRx() -> Observable<[Post]>
+    func deletePost(docId: String, completion: @escaping () -> Void)
+    
 }
 
 class FireBaseService: FirebaseServiceProtocol {

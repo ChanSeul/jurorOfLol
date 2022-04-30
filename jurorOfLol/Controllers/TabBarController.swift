@@ -8,14 +8,13 @@
 import UIKit
 
 class TabBarController : UITabBarController {
-    let timeLine = HomeViewController()
+    let timeLine = HomeViewController(viewModel: HomeViewModel(timeLineType: .Home), timeLineType: .Home)
     let myOptions = SettingsController()
     let unselectedImages = ["house"/*, "flame"*/,"person"]
     var itemIdx = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        myOptions.delegate = timeLine
         configureUI()
     }
     

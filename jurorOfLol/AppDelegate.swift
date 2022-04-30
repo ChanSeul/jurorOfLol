@@ -12,7 +12,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         FirebaseApp.configure()
         if let _ = Auth.auth().currentUser {
             //print("You're sign in as \(user.uid), email: \(user.email)")
-            LoginViewModel.shared.isLogin.accept(true)
+            Singleton.shared.isLogin.accept(true)
         }
         return true
     }

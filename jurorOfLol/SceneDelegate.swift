@@ -28,7 +28,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 //    }
     func sceneDidBecomeActive(_ scene: UIScene) {
         print("becomActive")
-        ThreadViewModel.shared.becomeActive.accept(true)
+        Singleton.shared.becomeActive.accept(true)
     }
 //    func sceneWillResignActive(_ scene: UIScene) {
 ////        ThreadViewModel.shared.isBackground.accept(true)

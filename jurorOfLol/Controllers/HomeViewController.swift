@@ -12,38 +12,45 @@ import RxRelay
 import RxCocoa
 import RxViewController
 
+enum TimeLineType: String {
+    case Home
+    case My
+}
+
 class HomeViewController: UIViewController {
     let viewModel: HomeViewModelType
+    let type: TimeLineType
     var disposeBag = DisposeBag()
     
-    
-    init(viewModel: HomeViewModelType = HomeViewModel()) {
+    init(viewModel: HomeViewModelType, timeLineType: TimeLineType) {
         self.viewModel = viewModel
-        //LoginController.shared.delegate = self
+        self.type = timeLineType
         super.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder aDecoder: NSCoder) {
-        viewModel = HomeViewModel()
+        viewModel = HomeViewModel(timeLineType: .Home)
+        type = .Home
         super.init(coder: aDecoder)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
-        timeLineTableView.refreshControl = UIRefreshControl()
-        timeLineTableView.refreshControl?.tintColor = .white
         bind()
     }
 
     func bind() {
-        
         //MARK: First loading
         
         rx.viewWillAppear
             .take(1)
             .subscribe(onNext: { [weak self] _ in
-                self?.viewModel.fetchInitial.onNext(())
+                if self?.type == .Home {
+                    self?.viewModel.fetchInitial.onNext(())
+                } else {
+                    self?.viewModel.fetchInitialMy.onNext(())
+                }
             })
             .disposed(by: disposeBag)
         
@@ -51,10 +58,13 @@ class HomeViewController: UIViewController {
         
         timeLineTableView.refreshControl?.rx
             .controlEvent(.valueChanged)
-            .map { _ in () }
             .subscribe(onNext: { [weak self] in
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + .seconds(1), execute: {
+                if self?.type == .Home {
                     self?.viewModel.fetchInitial.onNext(())
+                } else {
+                    self?.viewModel.fetchInitialMy.onNext(())
+                }
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + .seconds(1), execute: {
                     self?.timeLineTableView.refreshControl?.endRefreshing()
                 })
             })
@@ -75,14 +85,12 @@ class HomeViewController: UIViewController {
             })
             .disposed(by: disposeBag)
         
-        //MARK: tableView data handling
+        //MARK: TableView data handling
         
         viewModel.allPosts
             .bind(to: timeLineTableView.rx.items(cellIdentifier: HomeTableViewCell.identifier,
-                                                 cellType: HomeTableViewCell.self)) { [weak self]
+                                                 cellType: HomeTableViewCell.self)) {
                 row, item, cell in
-                guard let self = self else { return }
-                cell.delegate = self
                 cell.bind()
                 cell.data.accept(item)
                 cell.tag = row
@@ -95,7 +103,9 @@ class HomeViewController: UIViewController {
         viewModel.errorMessage
             .map { $0.domain }
             .subscribe(onNext: { [weak self] message in
-                self?.showAlert("Fetch error", message)
+                DispatchQueue.main.async {
+                    self?.showAlert("Fetch error", message)
+                }
             })
             .disposed(by: disposeBag)
         
@@ -107,6 +117,47 @@ class HomeViewController: UIViewController {
 //                }
 //            })
 //            .disposed(by: disposeBag)
+        Singleton.shared.refreshHomeTableView
+            .subscribe(onNext: { [weak self] _ in
+                self?.viewModel.fetchInitial.onNext(())
+            })
+            .disposed(by: disposeBag)
+        
+        Singleton.shared.showLoginModal
+            .subscribe(onNext: { [weak self] _ in
+                LoginController.shared.modalPresentationStyle = .overCurrentContext
+                self?.present(LoginController.shared, animated: false, completion: nil)
+            })
+            .disposed(by: disposeBag)
+        
+        Singleton.shared.showEditModal
+            .subscribe(onNext: { [weak self] (docId, userId, prepost) in
+                let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+                actionSheet.addAction(UIAlertAction(title: "취소", style: .cancel))
+                if let user = Auth.auth().currentUser {
+                    if user.uid == userId {
+                        actionSheet.addAction(UIAlertAction(title: "수정", style: .destructive) { _ in
+                            let editModal = UploadViewController(uploadType: .edit, prepost: prepost)
+                            let navVc = UINavigationController(rootViewController: editModal)
+                            navVc.modalPresentationStyle = .fullScreen
+                            self?.present(navVc, animated: true, completion: nil)
+                        })
+                        actionSheet.addAction(UIAlertAction(title: "삭제", style: .destructive) { _ in
+                            self?.viewModel.deletePost.onNext(docId)
+                        })
+                    }
+                }
+                self?.present(actionSheet, animated: true, completion: nil)
+            })
+            .disposed(by: disposeBag)
+        
+        Singleton.shared.renewCellHeight
+            .subscribe(onNext: { [weak self] _ in
+                UIView.performWithoutAnimation {
+                    self?.timeLineTableView.performBatchUpdates(nil)
+                }
+            })
+            .disposed(by: disposeBag)
     }
     
     //MARK: UI
@@ -121,7 +172,10 @@ class HomeViewController: UIViewController {
         return tableView
     }()
     
-    lazy var header: UIView = {
+    lazy var header: UIView? = {
+        if type == .My {
+            return nil
+        }
         let header = UIView()
         header.translatesAutoresizingMaskIntoConstraints = false
         header.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0.6)
@@ -133,7 +187,6 @@ class HomeViewController: UIViewController {
         label.text = "홈"
         header.addSubview(label)
         label.leadingAnchor.constraint(equalTo: header.leadingAnchor, constant: 18).isActive = true
-        //label.centerXAnchor.constraint(equalTo: header.centerXAnchor).isActive = true
         label.centerYAnchor.constraint(equalTo: header.centerYAnchor).isActive = true
         
         let sortMethodButton = UIButton()
@@ -156,51 +209,65 @@ class HomeViewController: UIViewController {
         seperatorView.trailingAnchor.constraint(equalTo: header.trailingAnchor).isActive = true
         seperatorView.topAnchor.constraint(equalTo: header.bottomAnchor, constant: -0.25).isActive = true
         seperatorView.bottomAnchor.constraint(equalTo: header.bottomAnchor).isActive = true
+        
         return header
     }()
     
-    let btn: UIButton = {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(systemName: "plus.circle.fill")?.applyingSymbolConfiguration(.init(weight: .thin)), for: .normal)
-        button.setPreferredSymbolConfiguration(.init(pointSize: 50, weight: .regular, scale: .default), forImageIn: .normal)
-        return button
+    lazy var uploadButton: UIButton? = {
+        if type == .My {
+            return nil
+        }
+        let uploadButton = UIButton()
+        uploadButton.translatesAutoresizingMaskIntoConstraints = false
+        uploadButton.setImage(UIImage(systemName: "plus.circle.fill")?.applyingSymbolConfiguration(.init(weight: .thin)), for: .normal)
+        uploadButton.setPreferredSymbolConfiguration(.init(pointSize: 50, weight: .regular, scale: .default), forImageIn: .normal)
+        uploadButton.addTarget(self, action: #selector(uploadAction(_:)), for: .touchUpInside)
+        return uploadButton
     }()
     
     
     func configureUI() {
+        timeLineTableView.refreshControl = UIRefreshControl()
+        timeLineTableView.refreshControl?.tintColor = .white
+        
         view.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        
         let guide = view.safeAreaLayoutGuide
         
         view.addSubview(timeLineTableView)
-        view.addSubview(header)
-        view.addSubview(btn)
         
         NSLayoutConstraint.activate([
             timeLineTableView.leadingAnchor.constraint(equalTo: guide.leadingAnchor),
             timeLineTableView.trailingAnchor.constraint(equalTo: guide.trailingAnchor),
-            timeLineTableView.topAnchor.constraint(equalTo: guide.topAnchor, constant: view.frame.height / 15),
-            timeLineTableView.bottomAnchor.constraint(equalTo: guide.bottomAnchor),
-            
-            header.leadingAnchor.constraint(equalTo: guide.leadingAnchor),
-            header.trailingAnchor.constraint(equalTo: guide.trailingAnchor),
-            header.topAnchor.constraint(equalTo: guide.topAnchor),
-            header.bottomAnchor.constraint(equalTo: timeLineTableView.topAnchor),
-            
-            btn.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            btn.bottomAnchor.constraint(equalTo: timeLineTableView.bottomAnchor),
-            btn.heightAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.2),
-            btn.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.2)
+            timeLineTableView.bottomAnchor.constraint(equalTo: guide.bottomAnchor)
         ])
-    
-        btn.addTarget(self, action: #selector(buttonAction(_:)), for: .touchUpInside)
+        
+        if let header = header, let uploadButton = uploadButton {
+            view.addSubview(header)
+            view.addSubview(uploadButton)
+            
+            NSLayoutConstraint.activate([
+                timeLineTableView.topAnchor.constraint(equalTo: guide.topAnchor, constant: view.frame.height / 15),
+                
+                header.leadingAnchor.constraint(equalTo: guide.leadingAnchor),
+                header.trailingAnchor.constraint(equalTo: guide.trailingAnchor),
+                header.topAnchor.constraint(equalTo: guide.topAnchor),
+                header.bottomAnchor.constraint(equalTo: timeLineTableView.topAnchor),
+                
+                uploadButton.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                uploadButton.bottomAnchor.constraint(equalTo: timeLineTableView.bottomAnchor),
+                uploadButton.heightAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.2),
+                uploadButton.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.2)
+            ])
+        } else {
+            timeLineTableView.topAnchor.constraint(equalTo: guide.topAnchor).isActive = true
+        }
     }
-    
+    // MARK: Button methods
     @objc
-    func buttonAction(_ sender:UIButton!) {
+    func uploadAction(_ sender:UIButton!) {
         if let _ = Auth.auth().currentUser {
             let uploadModal = UploadViewController(uploadType: .new)
-            uploadModal.delegate = self
             let navVC = UINavigationController(rootViewController: uploadModal)
             navVC.modalPresentationStyle = .fullScreen
             self.present(navVC, animated: true, completion: nil)
@@ -221,52 +288,5 @@ class HomeViewController: UIViewController {
             self?.viewModel.fetchInitialByVotes.onNext(())
         })
         present(actionSheet, animated: true, completion: nil)
-    }
-}
-
-extension HomeViewController: HomeTableViewCellDelegate {
-    func presentLoginModal() {
-        LoginController.shared.modalPresentationStyle = .overCurrentContext
-        self.present(LoginController.shared, animated: false, completion: nil)
-    }
-    
-    func showEditModal(docId: String, userId: String, prepost: ViewPost) {
-        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: "취소", style: .cancel))
-        if let user = Auth.auth().currentUser {
-            if user.uid == userId {
-                actionSheet.addAction(UIAlertAction(title: "수정", style: .destructive) { [weak self] _ in
-                    let editModal = UploadViewController(uploadType: .edit, prepost: prepost)
-                    editModal.delegate = self
-                    let navVc = UINavigationController(rootViewController: editModal)
-                    navVc.modalPresentationStyle = .fullScreen
-                    self?.present(navVc, animated: true, completion: nil)
-                })
-                actionSheet.addAction(UIAlertAction(title: "삭제", style: .destructive) { [weak self] _ in
-                    self?.viewModel.deletePost.onNext(docId)
-                })
-            }
-        }
-        present(actionSheet, animated: true, completion: nil)
-    }
-    
-    func renewCellHeight() {
-        UIView.performWithoutAnimation {
-            timeLineTableView.performBatchUpdates(nil)
-        }
-    }
-}
-
-extension HomeViewController: RefreshDelegate {
-    func refresh() {
-        Observable<Void>.of(())
-            .take(1)
-//            .do(onNext: { [weak self] in
-//                self?.viewModel.clearPosts.onNext(())
-//            })
-            .subscribe(onNext: { [weak self] in
-                self?.viewModel.fetchInitial.onNext(())
-            })
-            .disposed(by: disposeBag)
     }
 }

@@ -22,7 +22,6 @@ class UploadViewController: UIViewController {
     let viewModel: UploadViewModelType?
     let uploadType: UploadType
     let prepost: Post?
-    var delegate: RefreshDelegate?
     var disposeBag = DisposeBag()
     
     init(viewModel: UploadViewModelType = UploadViewModel(), uploadType: UploadType, prepost: ViewPost? = nil) {
@@ -109,7 +108,7 @@ class UploadViewController: UIViewController {
                 }
                 
                 self?.dismiss(animated: true, completion: nil)
-                self?.delegate?.refresh()
+                Singleton.shared.refreshHomeTableView.accept(true)
                 
             })
             .disposed(by: disposeBag)

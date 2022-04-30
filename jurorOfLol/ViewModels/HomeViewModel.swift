@@ -12,10 +12,12 @@ import RxCocoa
 import Firebase
 
 protocol HomeViewModelType {
+    var type: TimeLineType { get }
+    
     var fetchInitial: AnyObserver<Void> { get }
-    var fetchNext: AnyObserver<Void> { get }
     var fetchInitialByVotes: AnyObserver<Void> { get }
-    var clearPosts: AnyObserver<Void> { get }
+    var fetchInitialMy: AnyObserver<Void> { get }
+    var fetchNext: AnyObserver<Void> { get }
     var deletePost: AnyObserver<String> { get }
     
     var activated: Observable<Bool> { get }
@@ -25,13 +27,14 @@ protocol HomeViewModelType {
 }
 
 class HomeViewModel: HomeViewModelType {
+    let type: TimeLineType
     let disposeBag = DisposeBag()
     
     // INPUT
     let fetchInitial: AnyObserver<Void>
-    let fetchNext: AnyObserver<Void>
+    let fetchInitialMy: AnyObserver<Void>
     let fetchInitialByVotes: AnyObserver<Void>
-    let clearPosts: AnyObserver<Void>
+    let fetchNext: AnyObserver<Void>
     let deletePost: AnyObserver<String>
     
     // OUTPUT
@@ -40,17 +43,17 @@ class HomeViewModel: HomeViewModelType {
     let allPosts: Observable<[ViewPost]>
     
     
-    init(fireBaseService: FirebaseServiceProtocol = FireBaseService()) {
+    init(fireBaseService: FirebaseServiceProtocol = FireBaseService(), timeLineType: TimeLineType) {
+        type = timeLineType
         let fetchingInitial = PublishSubject<Void>()
-        let fetchingNext = PublishSubject<Void>()
         let fetchingInitialByVotes = PublishSubject<Void>()
-        let clearing = PublishSubject<Void>()
+        let fetchingInitialMy = PublishSubject<Void>()
+        let fetchingNext = PublishSubject<Void>()
+        
         let deletingPost = PublishSubject<String>()
         let activating = BehaviorSubject<Bool>(value: false)
         let error = PublishSubject<Error>()
         let posts = BehaviorRelay<[ViewPost]>(value: [])
-        
-        
         
         // INPUT
         fetchInitial = fetchingInitial.asObserver()
@@ -58,6 +61,32 @@ class HomeViewModel: HomeViewModelType {
         fetchingInitial
             .do(onNext: { _ in activating.onNext(true) })
             .flatMap{ fireBaseService.fetchInitialRx() }
+            .map { $0.map { ViewPost(post: $0) } }
+            .do(onNext: { _ in activating.onNext(false) })
+            .do(onError: { err in error.onNext(err) })
+            .subscribe(onNext: { (initialPosts) in
+                posts.accept(initialPosts)
+            })
+            .disposed(by: disposeBag)
+                
+        fetchInitialByVotes = fetchingInitialByVotes.asObserver()
+                
+        fetchingInitialByVotes
+            .do(onNext: { _ in activating.onNext(true) })
+            .flatMap{ fireBaseService.fetchInitialByVotesRx() }
+            .map { $0.map { ViewPost(post: $0) } }
+            .do(onNext: { _ in activating.onNext(false) })
+            .do(onError: { err in error.onNext(err) })
+            .subscribe(onNext: { (initialPosts) in
+                posts.accept(initialPosts)
+            })
+            .disposed(by: disposeBag)
+                
+        fetchInitialMy = fetchingInitialMy.asObserver()
+            
+        fetchingInitialMy
+            .do(onNext: { _ in activating.onNext(true) })
+            .flatMap{ fireBaseService.fetchMyInitialPostsRx() }
             .map { $0.map { ViewPost(post: $0) } }
             .do(onNext: { _ in activating.onNext(false) })
             .do(onError: { err in error.onNext(err) })
@@ -80,26 +109,7 @@ class HomeViewModel: HomeViewModelType {
             })
             .disposed(by: disposeBag)
                 
-        fetchInitialByVotes = fetchingInitialByVotes.asObserver()
-                
-        fetchingInitialByVotes
-            .do(onNext: { _ in activating.onNext(true) })
-            .flatMap{ fireBaseService.fetchInitialByVotesRx() }
-            .map { $0.map { ViewPost(post: $0) } }
-            .do(onNext: { _ in activating.onNext(false) })
-            .do(onError: { err in error.onNext(err) })
-            .subscribe(onNext: { (initialPosts) in
-                posts.accept(initialPosts)
-            })
-            .disposed(by: disposeBag)
-                    
-        clearPosts = clearing.asObserver()
-        
-        clearing
-            .subscribe(onNext: {
-                posts.accept([])
-            })
-            .disposed(by: disposeBag)
+
         
         deletePost = deletingPost.asObserver()
                 

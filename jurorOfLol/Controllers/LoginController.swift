@@ -232,7 +232,7 @@ class LoginController: UIViewController {
                         print(error.localizedDescription)
                     }
                 }
-                LoginViewModel.shared.isLogin.accept(true)
+                Singleton.shared.isLogin.accept(true)
                 self.animateDismissView()
             }
         }

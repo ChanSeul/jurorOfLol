@@ -8,11 +8,7 @@
 import UIKit
 import Firebase
 import TTTAttributedLabel
-//func heightWithConstrainedWidth(text: String, width: CGFloat, font: UIFont) -> CGFloat {
-//    let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
-//    let boundingBox = text.boundingRect(with: constraintRect, options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: [NSAttributedString.Key.font: font], context: nil)
-//    return boundingBox.height
-//}
+
 extension String {
     var youTubeId: String? {
         let typePattern = "(?:(?:\\.be\\/|embed\\/|v\\/|\\?v=|\\&v=|\\/videos\\/)|(?:[\\w+]+#\\w\\/\\w(?:\\/[\\w]+)?\\/\\w\\/))([\\w-_]+)"
@@ -111,8 +107,7 @@ extension UILabel {
         }
         self.text = truncatedSentence as String
         self.highlight(trailingContent.text, color: highlightColor)
-//        print(self.bounds.width)
-//        print(self.text)
+
     }
 
     func appendReadLess(after text: String, trailingContent: TrailingContent) {

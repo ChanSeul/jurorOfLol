@@ -11,10 +11,7 @@ import RxDataSources
 import RxRelay
 import RxSwift
 import Firebase
-
-protocol RefreshDelegate {
-    func refresh()
-}
+import FirebaseFirestore
 
 class SettingsController: UIViewController {
     let disposeBag = DisposeBag()
@@ -25,13 +22,11 @@ class SettingsController: UIViewController {
     
     let currentSections = BehaviorRelay<[Section]>(value: [])
     
-    var delegate: RefreshDelegate?
-    
     init() {
         super.init(nibName: nil, bundle: nil)
-        LoginViewModel.shared.isLogin
-            .subscribe(onNext: { [weak self] _ in
-                self?.delegate?.refresh()
+        Singleton.shared.isLogin
+            .subscribe(onNext: { _ in
+                Singleton.shared.refreshHomeTableView.accept(true)
             })
             .disposed(by: disposeBag)
     }
@@ -70,7 +65,7 @@ class SettingsController: UIViewController {
         navigationController?.setNavigationBarHidden(false, animated: false)
     }
     func bind() {
-        LoginViewModel.shared.isLogin.asDriver()
+        Singleton.shared.isLogin.asDriver()
             .drive(onNext: { [weak self] isLogin in
                 if isLogin == true {
                     self?.currentSections.accept([
@@ -88,7 +83,7 @@ class SettingsController: UIViewController {
                         ]),
                         Section(title: "", items: [
                             .staticCell(model: SettingsStaticOption(title: "내가 올린 글") { [weak self] in
-                                self?.navigationController?.pushViewController(MyPostsViewController(), animated: true)
+                                self?.navigationController?.pushViewController(HomeViewController(viewModel: HomeViewModel(timeLineType: .My), timeLineType: .My), animated: true)
                             })
                         ])])
                 }
@@ -167,7 +162,7 @@ class SettingsController: UIViewController {
                 print("Error signing out: %@", signOutError)
                 return
             }
-            LoginViewModel.shared.isLogin.accept(false)
+            Singleton.shared.isLogin.accept(false)
         })
         present(alertVC, animated: true, completion: nil)
     }
@@ -204,7 +199,7 @@ class SettingsController: UIViewController {
                             }
                         }
                     }
-                    LoginViewModel.shared.isLogin.accept(false)
+                    Singleton.shared.isLogin.accept(false)
                     completion(true)
                 }
             }

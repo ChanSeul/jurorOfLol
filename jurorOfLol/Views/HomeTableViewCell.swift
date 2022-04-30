@@ -14,16 +14,9 @@ import RxGesture
 import YoutubePlayer_in_WKWebView
 import Firebase
 
-protocol HomeTableViewCellDelegate {
-    func presentLoginModal()
-    func showEditModal(docId: String, userId: String, prepost: ViewPost)
-    func renewCellHeight()
-}
-
 class HomeTableViewCell: UITableViewCell {
     var viewModel: HomeTableViewCellViewModelType
     static let identifier = "HomeTableViewCell"
-    var delegate: HomeTableViewCellDelegate?
     
     var disposeBag = DisposeBag()
     
@@ -100,11 +93,11 @@ class HomeTableViewCell: UITableViewCell {
                 guard let self = self else { return }
                 if self.postText.numberOfLines == 0 {
                     self.postText.appendReadmore(after: currentPost.text, trailingContent: .readmore)
-                    self.delegate?.renewCellHeight()
+                    Singleton.shared.renewCellHeight.accept(true)
                 }
                 else {
                     self.postText.appendReadLess(after: currentPost.text, trailingContent: .readless)
-                    self.delegate?.renewCellHeight()
+                    Singleton.shared.renewCellHeight.accept(true)
                 }
             })
             .disposed(by: disposeBag)
@@ -114,7 +107,7 @@ class HomeTableViewCell: UITableViewCell {
             .withLatestFrom(data)
             .withLatestFrom(viewModel.activated) { ($0, $1) }
             .subscribe(onNext: { [weak self] (post,isActivating) in
-                guard let user = Auth.auth().currentUser else { self?.delegate?.presentLoginModal(); return }
+                guard let user = Auth.auth().currentUser else { Singleton.shared.showLoginModal.accept(true); return }
                 if isActivating == true { return }
                 else {
                     self?.viewModel.setActivating.onNext(true)
@@ -128,7 +121,7 @@ class HomeTableViewCell: UITableViewCell {
             .withLatestFrom(data)
             .withLatestFrom(viewModel.activated) { ($0, $1) }
             .subscribe(onNext: { [weak self] (post,isActivating) in
-                guard let user = Auth.auth().currentUser else { self?.delegate?.presentLoginModal(); return }
+                guard let user = Auth.auth().currentUser else { Singleton.shared.showLoginModal.accept(true); return }
                 if isActivating == true { return }
                 else {
                     self?.viewModel.setActivating.onNext(true)
@@ -142,10 +135,8 @@ class HomeTableViewCell: UITableViewCell {
             .when(.ended)
 //            .asDriver{ _ in .never() }
             .withLatestFrom(data)
-            .subscribe(onNext: { [weak self] currentPost in
-                DispatchQueue.main.async {
-                    self?.delegate?.showEditModal(docId: currentPost.docId, userId: currentPost.userId, prepost: currentPost)
-                }
+            .subscribe(onNext: { currentPost in
+                Singleton.shared.showEditModal.accept((docId: currentPost.docId, userId: currentPost.userId, prepost: currentPost))
             })
             .disposed(by: disposeBag)
 
