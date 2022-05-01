@@ -10,24 +10,35 @@ import Firebase
 import RxSwift
 import FirebaseFirestore
 
+enum FirebaseFetchType: String {
+    case All
+    case My
+    case ByVotes
+    case Next
+}
+
 protocol FirebaseServiceProtocol {
+    func fetchRx(fetchType: FirebaseFetchType) -> Observable<[Post]>
     func fetchInitial(completion: @escaping (Result<[Post], Error>) -> Void)
-    func fetchInitialRx() -> Observable<[Post]>
     func fetchInitialByVotes(completion: @escaping (Result<[Post], Error>) -> Void)
-    func fetchInitialByVotesRx() -> Observable<[Post]>
     func fetchMyInitialPosts(completion: @escaping (Result<[Post], Error>) -> Void)
-    func fetchMyInitialPostsRx() -> Observable<[Post]>
     func fetchNext(completion: @escaping (Result<[Post], Error>) -> Void)
-    func fetchNextRx() -> Observable<[Post]>
     func deletePost(docId: String, completion: @escaping () -> Void)
-    
+    func uploadPost(post: Post) -> DocumentReference?
+    func initializeVoteData(docId: String)
+    func editPost(docId: String, post: Post)
+    func updateTotalVotesofPost(docId: String, updataType: voteUpdateType)
+    func updateVoteDataByUser(userId: String, docId: String, updataType: voteUpdateType)
+    func updateVoteDataByPost(docId: String, updataType: voteUpdateType)
+    func updateUserSetForVoteByPost(userId: String, docId: String, updataType: voteUpdateType)
+    func fetchVoteDataOfCurrentUserForCurrentPost(userId: String, docId: String, fromPollNumber: Int, completion: @escaping (Int?,Int) -> Void)
+    func fetchVoteCountOfCurrentPost(docId: String, completion: @escaping (Double,Double) -> Void)
 }
 
 class FireBaseService: FirebaseServiceProtocol {
     let pageSize = 8
     var cursor: DocumentSnapshot?
     var query: Query?
-    //var dataMayContinue = true
     
     func fetchInitial(completion: @escaping (Result<[Post], Error>) -> Void) {
         let db = Firestore.firestore()
@@ -70,18 +81,56 @@ class FireBaseService: FirebaseServiceProtocol {
             }
         }
     }
-    func fetchInitialRx() -> Observable<[Post]> {
-        return Observable.create { (observer) -> Disposable in
-            self.fetchInitial() { result in
-                switch result {
-                case .success(let data):
-                    observer.onNext(data)
-                case .failure(let error):
-                    observer.onError(error)
+    func fetchRx(fetchType: FirebaseFetchType) -> Observable<[Post]> {
+        return Observable.create { [weak self] (observer) -> Disposable in
+            guard let self = self else { return Disposables.create() }
+            
+            switch fetchType {
+            case .All:
+                self.fetchInitial() { result in
+                    switch result {
+                    case .success(let data):
+                        observer.onNext(data)
+                    case .failure(let error):
+                        observer.onError(error)
+                    }
+                    observer.onCompleted()
                 }
-                observer.onCompleted()
+                return Disposables.create()
+            case .My:
+                self.fetchMyInitialPosts() { result in
+                    switch result {
+                    case .success(let data):
+                        observer.onNext(data)
+                    case .failure(let error):
+                        observer.onError(error)
+                    }
+                    observer.onCompleted()
+                }
+                return Disposables.create()
+            case .ByVotes:
+                self.fetchInitialByVotes() { result in
+                    switch result {
+                    case .success(let data):
+                        observer.onNext(data)
+                    case .failure(let error):
+                        observer.onError(error)
+                    }
+                    observer.onCompleted()
+                }
+                return Disposables.create()
+            case .Next:
+                self.fetchNext() { result in
+                    switch result {
+                    case .success(let data):
+                        observer.onNext(data)
+                    case .failure(let error):
+                        observer.onError(error)
+                    }
+                    observer.onCompleted()
+                }
+                return Disposables.create()
             }
-            return Disposables.create()
         }
     }
     func fetchNext(completion: @escaping (Result<[Post], Error>) -> Void) {
@@ -121,20 +170,6 @@ class FireBaseService: FirebaseServiceProtocol {
             }
         }
     }
-    func fetchNextRx() -> Observable<[Post]> {
-        return Observable.create { (observer) -> Disposable in
-            self.fetchNext() { result in
-                switch result {
-                case .success(let data):
-                    observer.onNext(data)
-                case .failure(let error):
-                    observer.onError(error)
-                }
-                observer.onCompleted()
-            }
-            return Disposables.create()
-        }
-    }
 
     func deletePost(docId: String, completion: @escaping () -> Void) {
         let db = Firestore.firestore()
@@ -162,8 +197,6 @@ class FireBaseService: FirebaseServiceProtocol {
             completion()
         }
     }
-    
-    // This is for MyPostsControllerViewModel
     
     func fetchMyInitialPosts(completion: @escaping (Result<[Post], Error>) -> Void) {
         let db = Firestore.firestore()
@@ -208,20 +241,7 @@ class FireBaseService: FirebaseServiceProtocol {
             }
         }
     }
-    func fetchMyInitialPostsRx() -> Observable<[Post]> {
-        return Observable.create { (observer) -> Disposable in
-            self.fetchMyInitialPosts() { result in
-                switch result {
-                case .success(let data):
-                    observer.onNext(data)
-                case .failure(let error):
-                    observer.onError(error)
-                }
-                observer.onCompleted()
-            }
-            return Disposables.create()
-        }
-    }
+
     func fetchInitialByVotes(completion: @escaping (Result<[Post], Error>) -> Void) {
         let db = Firestore.firestore()
         let formatter = DateFormatter()
@@ -263,19 +283,193 @@ class FireBaseService: FirebaseServiceProtocol {
             }
         }
     }
-    
-    func fetchInitialByVotesRx() -> Observable<[Post]> {
-        return Observable.create { (observer) -> Disposable in
-            self.fetchInitialByVotes() { result in
-                switch result {
-                case .success(let data):
-                    observer.onNext(data)
-                case .failure(let error):
-                    observer.onError(error)
+    func uploadPost(post: Post) -> DocumentReference? {
+        var docRef: DocumentReference?
+        if let user = Auth.auth().currentUser {
+            let db = Firestore.firestore()
+            docRef = db.collection("posts").addDocument(data: ["userID": user.uid,
+                                                                   "url": post.url.youTubeId!,
+                                                                   "champion1": post.champion1,
+                                                                   "champion2": post.champion2,
+                                                                   "text": post.text,
+                                                                   "date": Date().timeIntervalSince1970,
+                                                                   "totalVotes": 0])
+        }
+        return docRef
+    }
+    func initializeVoteData(docId: String) {
+        let db = Firestore.firestore()
+        db.collection("userSetForVoteByPost").document(docId).setData(["champion1VotesUsers": [],
+                                                                       "champion2VotesUsers": []])
+        db.collection("voteDataByPost").document(docId).setData(["champion1Votes": 0,
+                                                                 "champion2Votes": 0,
+                                                                 "totalVotes": 0])
+    }
+    func editPost(docId: String, post: Post) {
+        let db = Firestore.firestore()
+        let docRef = db.collection("posts").document(docId)
+        var update = [String: Any]()
+        update["url"] = post.url.youTubeId!
+        update["champion1"] = post.champion1
+        update["champion2"] = post.champion2
+        update["text"] = post.text
+        docRef.updateData(update) { error in
+            if let _ = error { print("Editng post error occured") }
+        }
+    }
+    func updateTotalVotesofPost(docId: String, updataType: voteUpdateType) {
+        let db = Firestore.firestore()
+        let docRef = db.collection("posts").document(docId)
+        var update = [String:Any]()
+        switch updataType {
+        case .onlyAddFirst:
+            update["totalVotes"] = FieldValue.increment(Int64(1))
+        case .onlyDecreaseFirst:
+            update["totalVotes"] = FieldValue.increment(Int64(-1))
+        case .onlyAddSecond:
+            update["totalVotes"] = FieldValue.increment(Int64(1))
+        case .onlyDecreaseSecond:
+            update["totalVotes"] = FieldValue.increment(Int64(-1))
+        case .addFirstDecreaseSecond:
+            break
+        case .decreaseFirstAddSecond:
+            break
+        }
+        docRef.updateData(update) { err in
+            if let _ = err { print("updating posts error occured") }
+        }
+    }
+    func updateVoteDataByUser(userId: String, docId: String, updataType: voteUpdateType) {
+        let db = Firestore.firestore()
+        let docRef = db.collection("voteDataByUsers").document(userId)
+        var update = [String:Any]()
+        switch updataType {
+        case .onlyAddFirst:
+            update["voteData."+docId] = 1
+        case .onlyDecreaseFirst:
+            update["voteData."+docId] = FieldValue.delete()
+        case .onlyAddSecond:
+            update["voteData."+docId] = 2
+        case .onlyDecreaseSecond:
+            update["voteData."+docId] = FieldValue.delete()
+        case .addFirstDecreaseSecond:
+            update["voteData."+docId] = 1
+        case .decreaseFirstAddSecond:
+            update["voteData."+docId] = 2
+        }
+        docRef.updateData(update) { err in
+            if let _ = err { print("updating voteDataByUsers error occured") }
+        }
+    }
+    func updateVoteDataByPost(docId: String, updataType: voteUpdateType) {
+        let db = Firestore.firestore()
+        let docRef = db.collection("voteDataByPost").document(docId)
+        var update = [String:Any]()
+        switch updataType {
+        case .onlyAddFirst:
+            update["champion1Votes"] = FieldValue.increment(Int64(1))
+            update["totalVotes"] = FieldValue.increment(Int64(1))
+        case .onlyDecreaseFirst:
+            update["champion1Votes"] = FieldValue.increment(Int64(-1))
+            update["totalVotes"] = FieldValue.increment(Int64(-1))
+        case .onlyAddSecond:
+            update["champion2Votes"] = FieldValue.increment(Int64(1))
+            update["totalVotes"] = FieldValue.increment(Int64(1))
+        case .onlyDecreaseSecond:
+            update["champion2Votes"] = FieldValue.increment(Int64(-1))
+            update["totalVotes"] = FieldValue.increment(Int64(-1))
+        case .addFirstDecreaseSecond:
+            update["champion1Votes"] = FieldValue.increment(Int64(1))
+            update["champion2Votes"] = FieldValue.increment(Int64(-1))
+        case .decreaseFirstAddSecond:
+            update["champion1Votes"] = FieldValue.increment(Int64(-1))
+            update["champion2Votes"] = FieldValue.increment(Int64(1))
+        }
+        docRef.updateData(update) { (error) in
+            if let _ = error { print( "Updating voteDataByPost error occured")}
+        }
+    }
+    func updateUserSetForVoteByPost(userId: String, docId: String, updataType: voteUpdateType) {
+        let db = Firestore.firestore()
+        let docRef = db.collection("userSetForVoteByPost").document(docId)
+        switch updataType {
+
+        case .onlyAddFirst:
+            docRef.updateData([
+                "champion1VotesUsers": FieldValue.arrayUnion([userId]),
+            ]) { err in
+                if let _ = err {
+                    print("updating userSetForVoteByPost error occured")
                 }
-                observer.onCompleted()
             }
-            return Disposables.create()
+        case .onlyDecreaseFirst:
+            docRef.updateData([
+                "champion1VotesUsers": FieldValue.arrayRemove([userId])
+            ]) { err in
+                if let _ = err {
+                    print("updating userSetForVoteByPost error occured")
+                }
+            }
+        case .onlyAddSecond:
+            docRef.updateData([
+                "champion2VotesUsers": FieldValue.arrayUnion([userId])
+            ]) { err in
+                if let _ = err {
+                    print("updating userSetForVoteByPost error occured")
+                }
+            }
+        case .onlyDecreaseSecond:
+            docRef.updateData([
+                "champion2VotesUsers": FieldValue.arrayRemove([userId])
+            ]) { err in
+                if let _ = err {
+                    print("updating userSetForVoteByPost error occured")
+                }
+            }
+        case .addFirstDecreaseSecond:
+            docRef.updateData([
+                "champion1VotesUsers": FieldValue.arrayUnion([userId]),
+                "champion2VotesUsers": FieldValue.arrayRemove([userId])
+            ]) { err in
+                if let _ = err {
+                    print("updating userSetForVoteByPost error occured")
+                }
+            }
+        case .decreaseFirstAddSecond:
+            docRef.updateData([
+                "champion1VotesUsers": FieldValue.arrayRemove([userId]),
+                "champion2VotesUsers": FieldValue.arrayUnion([userId])
+            ]) { err in
+                if let _ = err {
+                    print("updating userSetForVoteByPost error occured")
+                }
+            }
+        }
+    }
+    func fetchVoteDataOfCurrentUserForCurrentPost(userId: String, docId: String, fromPollNumber: Int, completion: @escaping (Int?,Int) -> Void) {
+        let db = Firestore.firestore()
+        let docRef = db.collection("voteDataByUsers").document(userId)
+        docRef.getDocument() { (document, error) in
+            if let document = document, document.exists {
+                let key = "voteData." + docId
+                let voteData = document.get(key) as? Int
+                completion(voteData, fromPollNumber)
+            }
+            if let _ = error {
+                print("Getting document error occured in fetchingVoteDataOfCurrentUserForCurrentPost")
+            }
+        }
+    }
+    func fetchVoteCountOfCurrentPost(docId: String, completion: @escaping (Double,Double) -> Void) {
+        let db = Firestore.firestore()
+        let docRef = db.collection("voteDataByPost").document(docId)
+        docRef.getDocument{ document, error in
+            if let document = document, document.exists {
+                guard let count1 = document.get("champion1Votes") as? Double else { print("fetchingVoteCountOfCurrentPost error"); return }
+                guard let count2 = document.get("champion2Votes") as? Double else { print("fetchingVoteCountOfCurrentPost error"); return }
+                completion(count1,count2)
+                
+            }
         }
     }
 }

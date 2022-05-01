@@ -14,7 +14,6 @@ import RxCocoa
 import simd
 
 protocol HomeTableViewCellViewModelType {
-    //var updateChampionVotesUsers: AnyObserver<(userId: String, docId: String, fromPollNumber: Int)> { get }
     var updateData: AnyObserver<(userId: String, docId: String, fromPollNumber: Int, updateType: voteUpdateType)> { get }
     var fetchVoteDataOfCurrentUserForCurrentPost: AnyObserver<(userId: String, docId: String, fromPollNumber: Int)> { get }
     var fetchVoteCountOfCurrentPost: AnyObserver<String> { get }
@@ -22,12 +21,11 @@ protocol HomeTableViewCellViewModelType {
     
     var activated: Observable<Bool> { get }
     var voteDataOfCurrentUserForCurrentPost: Observable<(voteData: Int?,fromPollNumber: Int)> { get }
-    //var voteCountOfCurrentPost: Driver<(Double,Double)> { get }
     var VoteCountOfCurrentPost: BehaviorRelay<(Double, Double)> { get }
 }
 class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
     let disposeBag = DisposeBag()
-    //let updateChampionVotesUsers: AnyObserver<(userId: String, docId: String, fromPollNumber: Int)>
+    
     let updateData: AnyObserver<(userId: String, docId: String, fromPollNumber: Int, updateType: voteUpdateType)>
     let fetchVoteDataOfCurrentUserForCurrentPost: AnyObserver<(userId: String, docId: String, fromPollNumber: Int)>
     let fetchVoteCountOfCurrentPost: AnyObserver<String>
@@ -36,13 +34,9 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
     let activated: Observable<Bool>
     let voteDataOfCurrentUserForCurrentPost: Observable<(voteData: Int?,fromPollNumber: Int)>
     let VoteCountOfCurrentPost = BehaviorRelay<(Double, Double)>(value: (0.0, 0.0))
-    //let voteCountOfCurrentPost: Driver<(Double,Double)>
     
     
-    init() {
-        let db = Firestore.firestore()
-        
-        //let updatingData = PublishSubject<(userId: String, docId: String, fromPollNumber: Int)>()
+    init(fireBaseService: FirebaseServiceProtocol = FireBaseService()) {
         let updatingData = PublishSubject<(userId: String, docId: String, fromPollNumber: Int, updateType: voteUpdateType)>()
         let fetchingVoteDataOfCurrentUserForCurrentPost = PublishSubject<(userId: String, docId: String, fromPollNumber: Int)>()
         let fetchingVoteCountOfCurrentPost = PublishSubject<String>()
@@ -52,7 +46,6 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
         
         
         //INPUT
-        //updateChampionVotesUsers = updatingChampionVotesUsers.asObserver()
         updateData = updatingData.asObserver()
         fetchVoteDataOfCurrentUserForCurrentPost = fetchingVoteDataOfCurrentUserForCurrentPost.asObserver()
         fetchVoteCountOfCurrentPost = fetchingVoteCountOfCurrentPost.asObserver()
@@ -63,133 +56,20 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
         voteDataOfCurrentUserForCurrentPost = fetchedVoteDataForCurrentPost.asObservable()
         
         updatingData
-            .subscribe(onNext: { (userId, docId, fromPollNumber, updataType) in
+            .subscribe(onNext: { (userId, docId, _, updataType) in
                 Task {
-                    let result = await withTaskGroup(of: Void.self, body: { taskGroup in
+                    let _ = await withTaskGroup(of: Void.self, body: { taskGroup in
                         taskGroup.addTask {
-                            let docRef = db.collection("posts").document(docId)
-                            var update = [String:Any]()
-                            switch updataType {
-                            case .onlyAddFirst:
-                                update["totalVotes"] = FieldValue.increment(Int64(1))
-                            case .onlyDecreaseFirst:
-                                update["totalVotes"] = FieldValue.increment(Int64(-1))
-                            case .onlyAddSecond:
-                                update["totalVotes"] = FieldValue.increment(Int64(1))
-                            case .onlyDecreaseSecond:
-                                update["totalVotes"] = FieldValue.increment(Int64(-1))
-                            case .addFirstDecreaseSecond:
-                                break
-                            case .decreaseFirstAddSecond:
-                                break
-                            }
-                            docRef.updateData(update) { err in
-                                if let _ = err { print("updating posts error occured") }
-                            }
+                            fireBaseService.updateTotalVotesofPost(docId: docId, updataType: updataType)
                         }
                         taskGroup.addTask {
-                            let docRef = db.collection("voteDataByUsers").document(userId)
-                            var update = [String:Any]()
-                            switch updataType {
-                            case .onlyAddFirst:
-                                update["voteData."+docId] = 1
-                            case .onlyDecreaseFirst:
-                                update["voteData."+docId] = FieldValue.delete()
-                            case .onlyAddSecond:
-                                update["voteData."+docId] = 2
-                            case .onlyDecreaseSecond:
-                                update["voteData."+docId] = FieldValue.delete()
-                            case .addFirstDecreaseSecond:
-                                update["voteData."+docId] = 1
-                            case .decreaseFirstAddSecond:
-                                update["voteData."+docId] = 2
-                            }
-                            docRef.updateData(update) { err in
-                                if let _ = err { print("updating voteDataByUsers error occured") }
-                            }
+                            fireBaseService.updateVoteDataByUser(userId: userId, docId: docId, updataType: updataType)
                         }
                         taskGroup.addTask {
-                            let docRef = db.collection("voteDataByPost").document(docId)
-                            var update = [String:Any]()
-                            switch updataType {
-                            case .onlyAddFirst:
-                                update["champion1Votes"] = FieldValue.increment(Int64(1))
-                                update["totalVotes"] = FieldValue.increment(Int64(1))
-                            case .onlyDecreaseFirst:
-                                update["champion1Votes"] = FieldValue.increment(Int64(-1))
-                                update["totalVotes"] = FieldValue.increment(Int64(-1))
-                            case .onlyAddSecond:
-                                update["champion2Votes"] = FieldValue.increment(Int64(1))
-                                update["totalVotes"] = FieldValue.increment(Int64(1))
-                            case .onlyDecreaseSecond:
-                                update["champion2Votes"] = FieldValue.increment(Int64(-1))
-                                update["totalVotes"] = FieldValue.increment(Int64(-1))
-                            case .addFirstDecreaseSecond:
-                                update["champion1Votes"] = FieldValue.increment(Int64(1))
-                                update["champion2Votes"] = FieldValue.increment(Int64(-1))
-                            case .decreaseFirstAddSecond:
-                                update["champion1Votes"] = FieldValue.increment(Int64(-1))
-                                update["champion2Votes"] = FieldValue.increment(Int64(1))
-                            }
-                            docRef.updateData(update) { (error) in
-                                if let _ = error { print( "Updating voteDataByPost error occured")}
-                            }
+                            fireBaseService.updateVoteDataByPost(docId: docId, updataType: updataType)
                         }
                         taskGroup.addTask {
-                            let docRef = db.collection("userSetForVoteByPost").document(docId)
-                            switch updataType {
-                    
-                            case .onlyAddFirst:
-                                docRef.updateData([
-                                    "champion1VotesUsers": FieldValue.arrayUnion([userId]),
-                                ]) { err in
-                                    if let _ = err {
-                                        print("updating userSetForVoteByPost error occured")
-                                    }
-                                }
-                            case .onlyDecreaseFirst:
-                                docRef.updateData([
-                                    "champion1VotesUsers": FieldValue.arrayRemove([userId])
-                                ]) { err in
-                                    if let _ = err {
-                                        print("updating userSetForVoteByPost error occured")
-                                    }
-                                }
-                            case .onlyAddSecond:
-                                docRef.updateData([
-                                    "champion2VotesUsers": FieldValue.arrayUnion([userId])
-                                ]) { err in
-                                    if let _ = err {
-                                        print("updating userSetForVoteByPost error occured")
-                                    }
-                                }
-                            case .onlyDecreaseSecond:
-                                docRef.updateData([
-                                    "champion2VotesUsers": FieldValue.arrayRemove([userId])
-                                ]) { err in
-                                    if let _ = err {
-                                        print("updating userSetForVoteByPost error occured")
-                                    }
-                                }
-                            case .addFirstDecreaseSecond:
-                                docRef.updateData([
-                                    "champion1VotesUsers": FieldValue.arrayUnion([userId]),
-                                    "champion2VotesUsers": FieldValue.arrayRemove([userId])
-                                ]) { err in
-                                    if let _ = err {
-                                        print("updating userSetForVoteByPost error occured")
-                                    }
-                                }
-                            case .decreaseFirstAddSecond:
-                                docRef.updateData([
-                                    "champion1VotesUsers": FieldValue.arrayRemove([userId]),
-                                    "champion2VotesUsers": FieldValue.arrayUnion([userId])
-                                ]) { err in
-                                    if let _ = err {
-                                        print("updating userSetForVoteByPost error occured")
-                                    }
-                                }
-                            }
+                            fireBaseService.updateUserSetForVoteByPost(userId: userId, docId: docId, updataType: updataType)
                         }
                     })
                     activating.onNext(false)
@@ -199,29 +79,16 @@ class HomeTableViewCellViewModel: HomeTableViewCellViewModelType {
 
         fetchingVoteDataOfCurrentUserForCurrentPost
             .subscribe(onNext: { userId, docId, fromPollNumber in
-                let docRef = db.collection("voteDataByUsers").document(userId)
-                docRef.getDocument() { (document, error) in
-                    if let document = document, document.exists {
-                        let key = "voteData." + docId
-                        let voteData = document.get(key) as? Int
-                        fetchedVoteDataForCurrentPost.onNext((voteData: voteData, fromPollNumber: fromPollNumber))
-                    }
-                    if let _ = error {
-                        print("Getting document error occured in fetchingVoteDataOfCurrentUserForCurrentPost")
-                    }
+                fireBaseService.fetchVoteDataOfCurrentUserForCurrentPost(userId: userId, docId: docId, fromPollNumber: fromPollNumber) { (voteData, fromPollNumber) in
+                    fetchedVoteDataForCurrentPost.onNext((voteData: voteData, fromPollNumber: fromPollNumber))
                 }
             })
             .disposed(by: disposeBag)
         
         fetchingVoteCountOfCurrentPost
-            .subscribe(onNext: { (docId) in
-                let docRef = db.collection("voteDataByPost").document(docId)
-                docRef.getDocument{ [weak self] document, error in
-                    if let document = document, document.exists {
-                        guard let count1 = document.get("champion1Votes") as? Double else { print("fetchingVoteCountOfCurrentPost error"); return }
-                        guard let count2 = document.get("champion2Votes") as? Double else { print("fetchingVoteCountOfCurrentPost error"); return }
-                        self?.VoteCountOfCurrentPost.accept((count1, count2))
-                    }
+            .subscribe(onNext: { [weak self] (docId) in
+                fireBaseService.fetchVoteCountOfCurrentPost(docId: docId) { (count1, count2) in
+                    self?.VoteCountOfCurrentPost.accept((count1, count2))
                 }
             })
             .disposed(by: disposeBag)

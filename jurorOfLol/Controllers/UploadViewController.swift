@@ -21,13 +21,17 @@ enum UploadType: String {
 class UploadViewController: UIViewController {
     let viewModel: UploadViewModelType?
     let uploadType: UploadType
-    let prepost: Post?
+//    let prepost: ViewPost?
     var disposeBag = DisposeBag()
     
     init(viewModel: UploadViewModelType = UploadViewModel(), uploadType: UploadType, prepost: ViewPost? = nil) {
         self.viewModel = viewModel
         self.uploadType = uploadType
-        self.prepost = prepost?.ViewPostIntoUploadingPost()
+        if prepost != nil {
+            var prepost = prepost!
+            prepost.url = "https://youtu.be/" + prepost.url
+            self.viewModel?.writePost.onNext(prepost)
+        }
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -91,23 +95,24 @@ class UploadViewController: UIViewController {
         navigationItem.rightBarButtonItem?.rx.tap
             .withLatestFrom(viewModel.writtenPost)
             .subscribe(onNext: { [weak self] written in
-                if written.url.youTubeId == nil { self?.showAlert("유효하지 않은 유튜브 URL입니다.", ""); return }
-                else if written.champion1 == "" { self?.showAlert("본인의 주장을 입력하세요.", ""); return }
-                else if written.champion2 == "" { self?.showAlert("상대방의 주장을 입력하세요.", ""); return }
-                else if written.text == "" { self?.showAlert("본문을 작성해주세요.", ""); return }
+                guard let self = self else { return }
+                if written.url.youTubeId == nil { self.showAlert("유효하지 않은 유튜브 URL입니다.", ""); return }
+                else if written.champion1 == "" { self.showAlert("본인의 주장을 입력하세요.", ""); return }
+                else if written.champion2 == "" { self.showAlert("상대방의 주장을 입력하세요.", ""); return }
+                else if written.text == "" { self.showAlert("본문을 작성해주세요.", ""); return }
                 
-                switch self?.uploadType {
+                switch self.uploadType {
                 case .new:
-                    self?.viewModel?.uploadPost.onNext(())
+                    self.viewModel?.uploadPost.onNext(())
                 case .edit:
-                    if let prepost = self?.prepost {
-                        self?.viewModel?.editPost.onNext((prepost.docId))
-                    }
-                case .none:
-                    return
+                    self.viewModel?.writtenPost
+                        .take(1)
+                        .subscribe(onNext: { writtenPost in
+                            self.viewModel?.editPost.onNext(writtenPost.docId)
+                        })
+                        .disposed(by: self.disposeBag)
                 }
-                
-                self?.dismiss(animated: true, completion: nil)
+                self.dismiss(animated: true, completion: nil)
                 Singleton.shared.refreshHomeTableView.accept(true)
                 
             })
@@ -118,8 +123,6 @@ class UploadViewController: UIViewController {
                 self?.dismiss(animated: true, completion: nil)
             })
             .disposed(by: disposeBag)
-        
-        
     }
 
 }
@@ -150,7 +153,12 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                 })
                 .disposed(by: disposeBag)
             if uploadType == .edit {
-                uploadcell.textView.text = prepost?.url
+                viewModel.writtenPost
+                    .take(1)
+                    .subscribe(onNext: { writtenPost in
+                        uploadcell.textView.text = writtenPost.url
+                    })
+                    .disposed(by: uploadcell.disposeBag)
             }
         case 1:
             uploadcell.textView.placeholder = "본인의 주장."
@@ -163,7 +171,12 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                 })
                 .disposed(by: disposeBag)
             if uploadType == .edit {
-                uploadcell.textView.text = prepost?.champion1
+                viewModel.writtenPost
+                    .take(1)
+                    .subscribe(onNext: { writtenPost in
+                        uploadcell.textView.text = writtenPost.champion1
+                    })
+                    .disposed(by: uploadcell.disposeBag)
             }
         case 2:
             uploadcell.textView.placeholder = "상대방의 주장."
@@ -176,7 +189,12 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                 })
                 .disposed(by: disposeBag)
             if uploadType == .edit {
-                uploadcell.textView.text = prepost?.champion2
+                viewModel.writtenPost
+                    .take(1)
+                    .subscribe(onNext: { writtenPost in
+                        uploadcell.textView.text = writtenPost.champion2
+                    })
+                    .disposed(by: uploadcell.disposeBag)
             }
         case 3:
             uploadcell.textView.placeholder = "당시 상황에 대해 자세히 적어주세요."
@@ -211,7 +229,12 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                 .disposed(by: disposeBag)
                     
             if uploadType == .edit {
-                uploadcell.textView.text = prepost?.text
+                viewModel.writtenPost
+                    .take(1)
+                    .subscribe(onNext: { writtenPost in
+                        uploadcell.textView.text = writtenPost.text
+                    })
+                    .disposed(by: uploadcell.disposeBag)
             }
         default:
             break
@@ -232,10 +255,6 @@ extension UploadViewController : UITableViewDataSource, UITableViewDelegate {
                 }
             })
             .disposed(by: disposeBag)
-        
-        if uploadType == .edit, let prepost = prepost {
-            viewModel.writePost.onNext(prepost)
-        }
         
         return uploadcell
     }

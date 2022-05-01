@@ -13,8 +13,6 @@ import Firebase
 
 
 protocol HomeViewModelType {
-    var type: TimeLineType { get }
-    
     var fetchInitial: AnyObserver<Void> { get }
     var fetchInitialByVotes: AnyObserver<Void> { get }
     var fetchInitialMy: AnyObserver<Void> { get }
@@ -28,7 +26,6 @@ protocol HomeViewModelType {
 }
 
 class HomeViewModel: HomeViewModelType {
-    let type: TimeLineType
     let disposeBag = DisposeBag()
     
     // INPUT
@@ -44,8 +41,8 @@ class HomeViewModel: HomeViewModelType {
     let allPosts: Observable<[ViewPost]>
     
     
-    init(fireBaseService: FirebaseServiceProtocol = FireBaseService(), timeLineType: TimeLineType) {
-        type = timeLineType
+    init(fireBaseService: FirebaseServiceProtocol = FireBaseService()) {
+
         let fetchingInitial = PublishSubject<Void>()
         let fetchingInitialByVotes = PublishSubject<Void>()
         let fetchingInitialMy = PublishSubject<Void>()
@@ -61,7 +58,7 @@ class HomeViewModel: HomeViewModelType {
         
         fetchingInitial
             .do(onNext: { _ in activating.onNext(true) })
-            .flatMap{ fireBaseService.fetchInitialRx() }
+            .flatMap{ fireBaseService.fetchRx(fetchType: .All) }
             .map { $0.map { ViewPost(post: $0) } }
             .do(onNext: { _ in activating.onNext(false) })
             .do(onError: { err in error.onNext(err) })
@@ -74,7 +71,7 @@ class HomeViewModel: HomeViewModelType {
                 
         fetchingInitialByVotes
             .do(onNext: { _ in activating.onNext(true) })
-            .flatMap{ fireBaseService.fetchInitialByVotesRx() }
+            .flatMap{ fireBaseService.fetchRx(fetchType: .ByVotes) }
             .map { $0.map { ViewPost(post: $0) } }
             .do(onNext: { _ in activating.onNext(false) })
             .do(onError: { err in error.onNext(err) })
@@ -87,7 +84,7 @@ class HomeViewModel: HomeViewModelType {
             
         fetchingInitialMy
             .do(onNext: { _ in activating.onNext(true) })
-            .flatMap{ fireBaseService.fetchMyInitialPostsRx() }
+            .flatMap{ fireBaseService.fetchRx(fetchType: .My) }
             .map { $0.map { ViewPost(post: $0) } }
             .do(onNext: { _ in activating.onNext(false) })
             .do(onError: { err in error.onNext(err) })
@@ -100,7 +97,7 @@ class HomeViewModel: HomeViewModelType {
         
         fetchingNext
             .do(onNext: { _ in activating.onNext(true) })
-            .flatMap{ fireBaseService.fetchNextRx() }
+            .flatMap{ fireBaseService.fetchRx(fetchType: .Next) }
             .map { $0.map { ViewPost(post: $0) } }
             .do(onNext: { _ in activating.onNext(false) })
             .do(onError: { err in error.onNext(err) })

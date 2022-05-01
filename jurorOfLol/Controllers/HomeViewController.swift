@@ -12,25 +12,22 @@ import RxRelay
 import RxCocoa
 import RxViewController
 
-enum TimeLineType: String {
-    case Home
-    case My
-}
+
 
 class HomeViewController: UIViewController {
     let viewModel: HomeViewModelType
-    let type: TimeLineType
+    let fetchType: FirebaseFetchType
     var disposeBag = DisposeBag()
     
-    init(viewModel: HomeViewModelType, timeLineType: TimeLineType) {
+    init(viewModel: HomeViewModelType, fetchType: FirebaseFetchType) {
         self.viewModel = viewModel
-        self.type = timeLineType
+        self.fetchType = fetchType
         super.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder aDecoder: NSCoder) {
-        viewModel = HomeViewModel(timeLineType: .Home)
-        type = .Home
+        viewModel = HomeViewModel()
+        fetchType = .All
         super.init(coder: aDecoder)
     }
     
@@ -46,7 +43,7 @@ class HomeViewController: UIViewController {
         rx.viewWillAppear
             .take(1)
             .subscribe(onNext: { [weak self] _ in
-                if self?.type == .Home {
+                if self?.fetchType == .All {
                     self?.viewModel.fetchInitial.onNext(())
                 } else {
                     self?.viewModel.fetchInitialMy.onNext(())
@@ -59,7 +56,7 @@ class HomeViewController: UIViewController {
         timeLineTableView.refreshControl?.rx
             .controlEvent(.valueChanged)
             .subscribe(onNext: { [weak self] in
-                if self?.type == .Home {
+                if self?.fetchType == .All {
                     self?.viewModel.fetchInitial.onNext(())
                 } else {
                     self?.viewModel.fetchInitialMy.onNext(())
@@ -173,7 +170,7 @@ class HomeViewController: UIViewController {
     }()
     
     lazy var header: UIView? = {
-        if type == .My {
+        if fetchType == .My {
             return nil
         }
         let header = UIView()
@@ -214,7 +211,7 @@ class HomeViewController: UIViewController {
     }()
     
     lazy var uploadButton: UIButton? = {
-        if type == .My {
+        if fetchType == .My {
             return nil
         }
         let uploadButton = UIButton()

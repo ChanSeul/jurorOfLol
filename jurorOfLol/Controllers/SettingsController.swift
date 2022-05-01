@@ -83,7 +83,7 @@ class SettingsController: UIViewController {
                         ]),
                         Section(title: "", items: [
                             .staticCell(model: SettingsStaticOption(title: "내가 올린 글") { [weak self] in
-                                self?.navigationController?.pushViewController(HomeViewController(viewModel: HomeViewModel(timeLineType: .My), timeLineType: .My), animated: true)
+                                self?.navigationController?.pushViewController(HomeViewController(viewModel: HomeViewModel(), fetchType: .My), animated: true)
                             })
                         ])])
                 }

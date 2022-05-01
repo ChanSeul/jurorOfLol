@@ -13,25 +13,23 @@ import FirebaseFirestore
 protocol UploadViewModelType {
     var uploadPost: AnyObserver<Void> { get }
     var editPost: AnyObserver<String> { get }
-    var writePost: AnyObserver<Post> { get }
-    var writtenPost: Observable<Post> { get }
+    var writePost: AnyObserver<ViewPost> { get }
+    var writtenPost: Observable<ViewPost> { get }
 }
 
 class UploadViewModel: UploadViewModelType{
     var disposeBag = DisposeBag()
-    
     let uploadPost: AnyObserver<Void>
     let editPost: AnyObserver<String>
-    let writePost: AnyObserver<Post>
+    let writePost: AnyObserver<ViewPost>
+    let writtenPost: Observable<ViewPost>
     
-    let writtenPost: Observable<Post>
-    
-    init() {
+    init(fireBaseService: FirebaseServiceProtocol = FireBaseService()) {
         let uploadingPost = PublishSubject<Void>()
-        let uploadingVoteData = PublishSubject<String>()
+        let initializingVoteData = PublishSubject<String>()
         let editingPost = PublishSubject<String>()
-        let writtingPost = PublishSubject<Post>()
-        let currentWrittenPost = BehaviorSubject<Post>(value: Post(url: "", champion1: "", champion2: "", text: "", date: "", docId: "", userId: ""))
+        let writtingPost = PublishSubject<ViewPost>()
+        let currentWrittenPost = BehaviorSubject<ViewPost>(value: ViewPost(url: "", champion1: "", champion2: "", text: "", date: "", docId: "", userId: ""))
         
         //INPUT
         uploadPost = uploadingPost.asObserver()
@@ -39,28 +37,15 @@ class UploadViewModel: UploadViewModelType{
         uploadingPost
             .withLatestFrom(currentWrittenPost)
             .subscribe(onNext: { (currentWrittenPost) in
-                guard let user = Auth.auth().currentUser else { return }
-                let db = Firestore.firestore()
-                let docRef = db.collection("posts").addDocument(data: ["userID": user.uid,
-                                                                       "url": currentWrittenPost.url.youTubeId!,
-                                                                       "champion1": currentWrittenPost.champion1,
-                                                                       "champion2": currentWrittenPost.champion2,
-                                                                       "text": currentWrittenPost.text,
-                                                                       "date": Date().timeIntervalSince1970,
-                                                                       "totalVotes": 0])
-                
-                uploadingVoteData.onNext(docRef.documentID)
+                if let docRef = fireBaseService.uploadPost(post: currentWrittenPost.ViewPostToPost()) {
+                    initializingVoteData.onNext(docRef.documentID)
+                }
             })
             .disposed(by: disposeBag)
         
-        uploadingVoteData
+        initializingVoteData
             .subscribe(onNext: { (docId) in
-                let db = Firestore.firestore()
-                db.collection("userSetForVoteByPost").document(docId).setData(["champion1VotesUsers": [],
-                                                                               "champion2VotesUsers": []])
-                db.collection("voteDataByPost").document(docId).setData(["champion1Votes": 0,
-                                                                         "champion2Votes": 0,
-                                                                         "totalVotes": 0])
+                fireBaseService.initializeVoteData(docId: docId)
             })
             .disposed(by: disposeBag)
         
@@ -69,16 +54,7 @@ class UploadViewModel: UploadViewModelType{
         editingPost
             .withLatestFrom(currentWrittenPost) { ($0, $1) }
             .subscribe(onNext: { (docId, currentWrittenPost) in
-                let db = Firestore.firestore()
-                let docRef = db.collection("posts").document(docId)
-                var update = [String: Any]()
-                update["url"] = currentWrittenPost.url.youTubeId!
-                update["champion1"] = currentWrittenPost.champion1
-                update["champion2"] = currentWrittenPost.champion2
-                update["text"] = currentWrittenPost.text
-                docRef.updateData(update) { error in
-                    if let _ = error { print("Editng post error occured") }
-                }
+                fireBaseService.editPost(docId: docId, post: currentWrittenPost.ViewPostToPost())
             })
             .disposed(by: disposeBag)
         
