@@ -18,9 +18,6 @@ import RxGesture
 import RxRelay
 import simd
 
-//protocol LoginControllerDelegate {
-//    func refresh()
-//}
 // Unhashed nonce.
 fileprivate var currentNonce: String?
 
@@ -282,32 +279,6 @@ extension LoginController: ASAuthorizationControllerDelegate {
                     }
                 }
             }
-//            let db = Firestore.firestore()
-//            let docRef = db.collection("withdrawalList").document(appleIDCredential.user)
-//            docRef.getDocument { [weak self] document, error in
-//                if let error = error {
-//                    print(error.localizedDescription)
-//                }
-//                if let document = document {
-//                    if document.exists == true { //가입한적이 있는 경우.
-//                        if let date = document.get("date") as? Double { // 탈퇴한적이 있는경우
-//                            if Date().timeIntervalSince1970 - date < 604800 { // 탈퇴한지 1주일이 안 되었기 때문에 로그인 안 됨.
-//                                // alert처리
-//                                print("아직 1주일이 안 됐어요.")
-//                            }
-//                            else { //탈퇴한지 1주일 넘었으므로 로그인
-//                                self?.startSignInWithFirebaseFlow(credential: credential, appleUserId: appleIDCredential.user)
-//                            }
-//                        }
-//                        else { // 탈퇴한적이 없는경우 로그인
-//                            self?.startSignInWithFirebaseFlow(credential: credential, appleUserId: appleIDCredential.user)
-//                        }
-//                    }
-//                    else { // 가입한적이 없는 경우. 로그인.
-//                        self?.startSignInWithFirebaseFlow(credential: credential, appleUserId: appleIDCredential.user)
-//                    }
-//                }
-//            }
         }
     }
 }

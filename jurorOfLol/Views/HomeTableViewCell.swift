@@ -29,7 +29,7 @@ class HomeTableViewCell: UITableViewCell {
         self.viewModel = HomeTableViewCellViewModel()
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         configureUI()
-        ThreadViewModel.shared.becomeActive
+        Singleton.shared.becomeActive
             .withLatestFrom(data) { ($0, $1) }
             .subscribe(onNext: { [weak self] (becomeActive, currentPost) in
                 if becomeActive == true {

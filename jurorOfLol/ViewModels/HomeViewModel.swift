@@ -11,6 +11,7 @@ import RxRelay
 import RxCocoa
 import Firebase
 
+
 protocol HomeViewModelType {
     var type: TimeLineType { get }
     
