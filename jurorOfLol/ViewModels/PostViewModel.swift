@@ -37,8 +37,19 @@ struct ViewPost {
         self.userId = post.userId
     }
     
-    func ViewPostIntoUploadingPost() -> Post {
-        return Post(url: "https://youtu.be/" + self.url, champion1: self.champion1, champion2: self.champion2, text: self.text, date: self.date, docId: self.docId, userId: self.userId)
+    init(url: String, champion1: String, champion2: String, text: String, date: String, docId: String, userId: String) {
+        self.url = url
+        self.champion1 = champion1
+        self.champion2 = champion2
+        self.text = text
+        self.date = date
+        self.docId = docId
+        self.userId = userId
+    }
+    
+    func ViewPostToPost() -> Post {
+        return Post(url: self.url, champion1: self.champion1, champion2: self.champion2, text: self.text, date: self.date, docId: self.docId, userId: self.userId)
+//        return Post(url: "https://youtu.be/" + self.url, champion1: self.champion1, champion2: self.champion2, text: self.text, date: self.date, docId: self.docId, userId: self.userId)
     }
 }
 

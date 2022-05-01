@@ -8,9 +8,12 @@
 import Foundation
 import UIKit
 import KMPlaceholderTextView
+import RxSwift
 
 
 class UploadCell: UITableViewCell{
+    
+    var disposeBag = DisposeBag()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -84,7 +87,9 @@ class UploadCell: UITableViewCell{
             seperatorView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
             seperatorView.heightAnchor.constraint(equalToConstant: 1)
         ])
-        
+    }
+    override func prepareForReuse() {
+        disposeBag = DisposeBag()
     }
 }
 
