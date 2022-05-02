@@ -56,9 +56,14 @@ class TabBarController : UITabBarController {
     }
     override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
         if self.selectedItem != nil {
+            if item == self.selectedItem && item.title == "홈" {
+                let indexPath = IndexPath(row: 0, section: 0)
+                timeLine.timeLineTableView.scrollToRow(at: indexPath, at: .top, animated: true)
+            }
             self.selectedItem!.image = self.imageDic[self.selectedItem!]![0]
             item.image = self.imageDic[item]![1]
             self.selectedItem = item
+
         }
     }
 }

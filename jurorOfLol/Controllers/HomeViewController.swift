@@ -67,6 +67,23 @@ class HomeViewController: UIViewController {
             })
             .disposed(by: disposeBag)
         
+        
+         //MARK: From background into foreground
+        
+        Singleton.shared.becomeActive
+            .subscribe(onNext: { [weak self] _ in
+                if self?.fetchType == .All {
+                    if Date().timeIntervalSince1970 - Singleton.shared.timeStamp > 1200 {
+                        self?.viewModel.fetchInitial.onNext(())
+                        DispatchQueue.main.async {
+                            let indexPath = IndexPath(row: 0, section: 0)
+                            self?.timeLineTableView.scrollToRow(at: indexPath, at: .top, animated: true)
+                        }
+                    }
+                }
+            })
+            .disposed(by: disposeBag)
+        
         //MARK: Pagination
         
         timeLineTableView.rx.didScroll
@@ -106,14 +123,6 @@ class HomeViewController: UIViewController {
             })
             .disposed(by: disposeBag)
         
-        // MARK: From background into foreground
-//        ThreadViewModel.shared.isBackground
-//            .subscribe(onNext: { [weak self] isBackground in
-//                if isBackground == true {
-//                    self?.viewModel.fetchInitial.onNext(())
-//                }
-//            })
-//            .disposed(by: disposeBag)
         Singleton.shared.refreshHomeTableView
             .subscribe(onNext: { [weak self] _ in
                 self?.viewModel.fetchInitial.onNext(())

@@ -21,7 +21,9 @@ class Singleton {
     
     let renewCellHeight: PublishRelay<Bool>
     
-    let becomeActive: BehaviorRelay<Bool>
+    let becomeActive: PublishRelay<Bool>
+    
+    var timeStamp: Double
     
     init() {
         refreshHomeTableView = PublishRelay<Bool>()
@@ -33,6 +35,8 @@ class Singleton {
         
         renewCellHeight = PublishRelay<Bool>()
         
-        becomeActive = BehaviorRelay<Bool>(value: false)
+        becomeActive = PublishRelay<Bool>()
+        
+        timeStamp = Date().timeIntervalSince1970
     }
 }

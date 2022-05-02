@@ -30,9 +30,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         print("becomActive")
         Singleton.shared.becomeActive.accept(true)
     }
-//    func sceneWillResignActive(_ scene: UIScene) {
-////        ThreadViewModel.shared.isBackground.accept(true)
-//        print("resign")
-//    }
+    func sceneWillResignActive(_ scene: UIScene) {
+        Singleton.shared.timeStamp = Date().timeIntervalSince1970
+        print("resign")
+    }
 }
 
