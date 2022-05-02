@@ -27,12 +27,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 //        print("foreground")
 //    }
     func sceneDidBecomeActive(_ scene: UIScene) {
-        print("becomActive")
         Singleton.shared.becomeActive.accept(true)
     }
     func sceneWillResignActive(_ scene: UIScene) {
         Singleton.shared.timeStamp = Date().timeIntervalSince1970
-        print("resign")
     }
 }
 
