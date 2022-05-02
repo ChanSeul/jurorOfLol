@@ -31,4 +31,4 @@
 - KMPlaceholderTextView
 - YoutubePlayer-in-WKWebView
 ## Bugs
-- 앱이 background에서 foreground로 돌아올 때, 동영상 뷰가 blank가 되는 현상이 간혹 발생함.
+- ~~앱이 background에서 foreground로 돌아올 때, 동영상 뷰가 blank가 되는 현상이 간혹 발생함.~~ ( 현재시간 - 마지막 Resign 값이 20분 이상이면, refetch하는 것으로 해결 )
