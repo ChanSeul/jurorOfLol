@@ -29,19 +29,6 @@ class HomeTableViewCell: UITableViewCell {
         self.viewModel = HomeTableViewCellViewModel()
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         configureUI()
-        Singleton.shared.becomeActive
-            .withLatestFrom(data) { ($0, $1) }
-            .subscribe(onNext: { [weak self] (becomeActive, currentPost) in
-                if becomeActive == true {
-                    self?.videoContainerView.getCurrentTime() { (time, error) in
-                        if let _ = error {
-                            self?.videoContainerView.load(withVideoId: currentPost.url) //빈 화면을 로드해서 덮어버림
-                        }
-                    }
-                    print("complete")
-                }
-            })
-            .disposed(by: disposeBag)
     }
 
     required init?(coder aDecoder: NSCoder) {
