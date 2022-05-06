@@ -58,7 +58,7 @@ class HomeViewModel: HomeViewModelType {
         
         fetchingInitial
             .do(onNext: { _ in activating.onNext(true) })
-            .flatMap{ fireBaseService.fetchRx(fetchType: .All) }
+            .flatMap{ fireBaseService.fetchRx(fetchType: .ByTime) }
             .map { $0.map { ViewPost(post: $0) } }
             .do(onNext: { _ in activating.onNext(false) })
             .do(onError: { err in error.onNext(err) })

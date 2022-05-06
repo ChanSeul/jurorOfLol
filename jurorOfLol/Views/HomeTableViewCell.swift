@@ -21,7 +21,6 @@ class HomeTableViewCell: UITableViewCell {
     var disposeBag = DisposeBag()
     
     var data = PublishRelay<ViewPost>()
-    var voteData = PublishRelay<ViewPost>()
     
     var isLoaded = false
        
@@ -42,13 +41,6 @@ class HomeTableViewCell: UITableViewCell {
                 
                 if self.isLoaded == true {
                     self.videoContainerView.cueVideo(byId: currentPost.url, startSeconds: 0, suggestedQuality: .default)
-                    // cue 에러나서 빈 화면 출력되는 케이스를 getCurrentTime으로 감지함.
-                    self.videoContainerView.getCurrentTime() { (time, error) in
-                        if let _ = error {
-                            self.videoContainerView.load(withVideoId: currentPost.url) //빈 화면을 로드해서 덮어버림
-                        }
-                    }
-                    
                 }
                 else {
                     self.videoContainerView.load(withVideoId: currentPost.url)
@@ -285,7 +277,6 @@ class HomeTableViewCell: UITableViewCell {
         viewModel = HomeTableViewCellViewModel()
         data = PublishRelay<ViewPost>()
         disposeBag = DisposeBag()
-//        cellDisposeBag = DisposeBag()
         poll1.setGray()
         poll2.setGray()
         poll1.deactiveWidthConstraint()

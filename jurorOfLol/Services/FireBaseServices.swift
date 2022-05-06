@@ -11,7 +11,7 @@ import RxSwift
 import FirebaseFirestore
 
 enum FirebaseFetchType: String {
-    case All
+    case ByTime
     case My
     case ByVotes
     case Next
@@ -86,7 +86,7 @@ class FireBaseService: FirebaseServiceProtocol {
             guard let self = self else { return Disposables.create() }
             
             switch fetchType {
-            case .All:
+            case .ByTime:
                 self.fetchInitial() { result in
                     switch result {
                     case .success(let data):

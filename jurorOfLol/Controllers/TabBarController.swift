@@ -9,7 +9,7 @@ import UIKit
 import RxSwift
 
 class TabBarController : UITabBarController {
-    let timeLine = HomeViewController(viewModel: HomeViewModel(), fetchType: .All)
+    let timeLine = HomeViewController(viewModel: HomeViewModel(), fetchType: .ByTime)
     let myOptions = SettingsController()
     var selectedItem: UITabBarItem?
     var imageDic = [UITabBarItem:[UIImage?]]()

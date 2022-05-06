@@ -24,11 +24,6 @@ class SettingsController: UIViewController {
     
     init() {
         super.init(nibName: nil, bundle: nil)
-        Singleton.shared.isLogin
-            .subscribe(onNext: { _ in
-                Singleton.shared.refreshHomeTableView.accept(true)
-            })
-            .disposed(by: disposeBag)
     }
     
     required init?(coder: NSCoder) {
@@ -41,14 +36,11 @@ class SettingsController: UIViewController {
         settingsTableView.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
         settingsTableView.register(StaticSettingTableViewCell.self, forCellReuseIdentifier: StaticSettingTableViewCell.identifier)
         settingsTableView.register(SwitchSettingTableViewCell.self, forCellReuseIdentifier: SwitchSettingTableViewCell.identifier)
-//        settingsTableView.tableHeaderView?.backgroundColor = .green
         settingsTableView.rx.setDelegate(self)
             .disposed(by: disposeBag)
         return settingsTableView
     }()
-    
-
-    
+ 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableViewDataSource()
@@ -56,14 +48,6 @@ class SettingsController: UIViewController {
         configureUI()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: false)
-    }
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: false)
-    }
     func bind() {
         Singleton.shared.isLogin.asDriver()
             .drive(onNext: { [weak self] isLogin in
@@ -97,12 +81,14 @@ class SettingsController: UIViewController {
                         ])
                     ])
                 }
+                Singleton.shared.refreshHomeTableView.accept(true)
             })
             .disposed(by: disposeBag)
         
         currentSections.asDriver()
             .drive(settingsTableView.rx.items(dataSource: dataSource))
             .disposed(by: disposeBag)
+        
     }
     
     func setupTableViewDataSource() {
@@ -136,6 +122,8 @@ class SettingsController: UIViewController {
     }
     
     func configureUI() {
+        navigationController?.setNavigationBarHidden(true, animated: false)
+        
         view.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
         
         view.addSubview(settingsTableView)

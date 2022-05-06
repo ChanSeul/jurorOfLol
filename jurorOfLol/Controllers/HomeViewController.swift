@@ -27,7 +27,7 @@ class HomeViewController: UIViewController {
     
     required init?(coder aDecoder: NSCoder) {
         viewModel = HomeViewModel()
-        fetchType = .All
+        fetchType = .ByTime
         super.init(coder: aDecoder)
     }
     
@@ -43,7 +43,7 @@ class HomeViewController: UIViewController {
         rx.viewWillAppear
             .take(1)
             .subscribe(onNext: { [weak self] _ in
-                if self?.fetchType == .All {
+                if self?.fetchType == .ByTime {
                     self?.viewModel.fetchInitial.onNext(())
                 } else {
                     self?.viewModel.fetchInitialMy.onNext(())
@@ -56,7 +56,7 @@ class HomeViewController: UIViewController {
         timeLineTableView.refreshControl?.rx
             .controlEvent(.valueChanged)
             .subscribe(onNext: { [weak self] in
-                if self?.fetchType == .All {
+                if self?.fetchType == .ByTime {
                     self?.viewModel.fetchInitial.onNext(())
                 } else {
                     self?.viewModel.fetchInitialMy.onNext(())
@@ -72,7 +72,7 @@ class HomeViewController: UIViewController {
         
         Singleton.shared.becomeActive
             .subscribe(onNext: { [weak self] _ in
-                if self?.fetchType == .All {
+                if self?.fetchType == .ByTime {
                     if Date().timeIntervalSince1970 - Singleton.shared.timeStamp > 1200 {
                         self?.viewModel.fetchInitial.onNext(())
                         DispatchQueue.main.async {

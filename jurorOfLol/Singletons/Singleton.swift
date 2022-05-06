@@ -29,6 +29,7 @@ class Singleton {
         refreshHomeTableView = PublishRelay<Bool>()
         
         isLogin = BehaviorRelay<Bool>(value: false)
+
         showLoginModal = PublishRelay<Bool>()
         
         showEditModal = PublishRelay<(docId: String, userId: String, prepost: ViewPost)>()
