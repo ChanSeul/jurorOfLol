@@ -1,5 +1,5 @@
 # Uncomment the next line to define a global platform for your project
-# platform :ios, '15.2'
+# platform :ios, '13.0'
 
 target 'jurorOfLol' do
   # Comment the next line if you don't want to use dynamic frameworks
@@ -14,12 +14,13 @@ pod 'RxViewController'
 pod 'RxGesture'
 pod 'RxDataSources'
   # Pods for FireBase
-pod 'Firebase/Analytics'
-pod 'Firebase/Firestore'
 pod 'Firebase/Auth'
   # Pods for Util
 pod 'SDWebImage', '~> 5.0'
 pod 'KMPlaceholderTextView'
 pod "YoutubePlayer-in-WKWebView", "~> 0.3.0"
 pod 'TTTAttributedLabel'
+  # Pod for Network
+pod 'Alamofire'
+pod 'RxAlamofire'
 end
