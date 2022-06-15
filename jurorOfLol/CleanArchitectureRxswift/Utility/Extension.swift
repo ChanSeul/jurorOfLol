@@ -27,14 +27,14 @@ extension UIViewController {
         alertVC.addAction(UIAlertAction(title: "확인", style: .default))
         present(alertVC, animated: true, completion: nil)
     }
-    public func requiredHeight(for text: String, width: CGFloat, font: UIFont) -> CGFloat {
-        let label = UILabel(frame: CGRect(x: 0, y: 0, width: width, height: CGFloat.greatestFiniteMagnitude))
-        label.numberOfLines = 0
-        label.font = font
-        label.text = text
-        label.sizeToFit()
-        return label.frame.height
-      }
+//    public func requiredHeight(for text: String, width: CGFloat, font: UIFont) -> CGFloat {
+//        let label = UILabel(frame: CGRect(x: 0, y: 0, width: width, height: CGFloat.greatestFiniteMagnitude))
+//        label.numberOfLines = 0
+//        label.font = font
+//        label.text = text
+//        label.sizeToFit()
+//        return label.frame.height
+//      }
 }
 
 //extension UIButton {
@@ -45,7 +45,7 @@ extension UIViewController {
 //      }
 //}
 
-enum TrailingContent {
+public enum TrailingContent {
     case readmore
     case readless
 
@@ -63,11 +63,13 @@ extension UILabel {
     private var highlightColor: UIColor { return .lightGray }
 
     private var attributes: [NSAttributedString.Key: Any] {
-        return [.font: self.font ?? .systemFont(ofSize: 15)]
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 4
+        return [.font: self.font ?? .systemFont(ofSize: 15), .paragraphStyle: paragraphStyle]
     }
     
     public func requiredHeight(for text: String) -> CGFloat {
-        let label = UILabel(frame: CGRect(x: 0, y: 0, width: frame.width, height: CGFloat.greatestFiniteMagnitude))
+        let label = UILabel(frame: CGRect(x: 0, y: 0, width: bounds.width, height: CGFloat.greatestFiniteMagnitude))
 //        label.numberOfLines = minimumLines
 //        label.lineBreakMode = NSLineBreakMode.byTruncatingTail
         label.numberOfLines = 0
@@ -87,15 +89,22 @@ extension UILabel {
     }
 
     func appendReadmore(after text: String, trailingContent: TrailingContent) {
+        let attrString = NSMutableAttributedString.init(string: text)
+        attrString.addAttributes(attributes, range: NSMakeRange(0, attrString.length))
+        self.attributedText = attrString
+        
         self.numberOfLines = minimumLines
-        let minimumLineText = "\n"
+        var minimumLineText = ""
+        for _ in 0..<self.minimumLines {
+            minimumLineText += "\n"
+        }
         let minimumlineHeight = requiredHeight(for: minimumLineText)
         let sentenceText = NSString(string: text)
         let sentenceRange = NSRange(location: 0, length: sentenceText.length)
         var truncatedSentence: NSString = sentenceText
         var endIndex: Int = sentenceRange.upperBound
-        let size: CGSize = CGSize(width: self.bounds.width, height: CGFloat.greatestFiniteMagnitude)
-        while truncatedSentence.boundingRect(with: size, options: .usesLineFragmentOrigin, attributes: attributes, context: nil).size.height >= minimumlineHeight {
+        let size: CGSize = CGSize(width: bounds.width, height: CGFloat.greatestFiniteMagnitude)
+        while truncatedSentence.boundingRect(with: size, options: .usesLineFragmentOrigin, attributes: attributes, context: nil).size.height > minimumlineHeight {
             if endIndex == 0 {
                 break
             }
@@ -105,6 +114,7 @@ extension UILabel {
             truncatedSentence = (String(truncatedSentence) + trailingContent.text) as NSString
 
         }
+        
         self.text = truncatedSentence as String
         self.highlight(trailingContent.text, color: highlightColor)
 
@@ -120,5 +130,24 @@ extension UILabel {
 //        else {
 //            self.text = text
 //        }
+    }
+}
+
+extension UINavigationItem {
+    func setTitleView(title: String) {
+        let titleLabel = UILabel()
+        let attr: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.white, .font: UIFont.boldSystemFont(ofSize: 20)]
+        let attrStr = NSMutableAttributedString(string: title, attributes: attr)
+        titleLabel.attributedText = attrStr
+        titleLabel.sizeToFit()
+        self.titleView = titleLabel
+    }
+}
+
+extension Double {
+    func toDateFormat() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        return formatter.string(from: Date(timeIntervalSince1970: self))
     }
 }

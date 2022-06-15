@@ -7,13 +7,9 @@
 
 import Foundation
 import UIKit
-import RxCocoa
-import RxRelay
-import RxSwift
 
-class PollView: UIView {
-    private let disposeBag = DisposeBag()
-    var percentageFillingWidthViewConstraint: NSLayoutConstraint?
+final class PollView: UIView {
+    private var percentageFillingWidthViewConstraint: NSLayoutConstraint?
     
     init() {
         super.init(frame: CGRect.zero)
@@ -113,9 +109,7 @@ class PollView: UIView {
             percentageLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -margin),
             percentageLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: margin),
             percentageLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -margin)
-        ])
-        
-        
+        ]) 
     }
 }
 
