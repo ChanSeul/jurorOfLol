@@ -82,7 +82,6 @@ final class SettingViewModel: ViewModelType {
 extension SettingViewModel {
     struct Input {
         let isLogin: Observable<Bool>
-        let userId: Observable<String>
         let signInTrigger: Observable<Void>
         let signOutTrigger: Observable<Void>
         let withdrawalTrigger: Observable<Void>

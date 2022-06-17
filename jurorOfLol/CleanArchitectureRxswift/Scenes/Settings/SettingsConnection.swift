@@ -16,15 +16,14 @@ extension SettingViewController {
     func connect() {
         assert(viewModel != nil)
         
-        let isLogin = UserDefaults.standard.rx.observe(Bool.self, "isLoggedIn").compactMap { $0 }
-        let userId = UserDefaults.standard.rx.observe(String.self, "userId").compactMap { $0 }
+        let isLogin = UserDefaults.standard.rx.observe(Bool.self, "isLoggedIn").map { $0 ?? false }
         
         let signInTrigger = PublishSubject<Void>()
         let signOutTrigger = PublishSubject<Void>()
         let withdrawalTrigger = PublishSubject<Void>()
         let viewMyPostTrigger = PublishSubject<Void>()
         
-        let input = SettingViewModel.Input(isLogin: isLogin, userId: userId, signInTrigger: signInTrigger, signOutTrigger: signOutTrigger, withdrawalTrigger: withdrawalTrigger, viewMyPostTrigger: viewMyPostTrigger)
+        let input = SettingViewModel.Input(isLogin: isLogin, signInTrigger: signInTrigger, signOutTrigger: signOutTrigger, withdrawalTrigger: withdrawalTrigger, viewMyPostTrigger: viewMyPostTrigger)
         let output = viewModel.transform(input: input)
         
         output.signIn.subscribe().disposed(by: disposeBag)
