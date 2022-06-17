@@ -14,6 +14,7 @@ final class LoginNetwork {
     private let endPoint: String
     private let scheduler: ConcurrentDispatchQueueScheduler
     
+    
     init(_ endPoint: String) {
         self.endPoint = endPoint
         self.scheduler = ConcurrentDispatchQueueScheduler(qos: DispatchQoS(qosClass: DispatchQoS.QoSClass.background, relativePriority: 1))

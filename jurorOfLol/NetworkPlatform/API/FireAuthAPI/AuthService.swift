@@ -11,13 +11,20 @@ import RxSwift
 import CryptoKit
 import FirebaseAuth
 
-fileprivate var currentNonce: String?
+protocol AbstractAuthSerivce {
+    func makeCredential(didCompleteWithAuthorization authorization: ASAuthorization) -> Observable<(credential: OAuthCredential, appleUserId: String)>
+    func startSignInWithAppleFlow() -> Observable<[ASAuthorizationAppleIDRequest]>
+    func startSignInWithFirebaseFlow(credential: OAuthCredential) -> Observable<Void>
+    func signOut() -> Observable<Void>
+}
 
-enum LoginService {
-    static func makeCredential(didCompleteWithAuthorization authorization: ASAuthorization) -> Observable<(credential: OAuthCredential, appleUserId: String)> {
-        Observable.create { observer in
+final class AuthService: AbstractAuthSerivce {
+    private var currentNonce: String?
+    @available(iOS 13, *)
+    func makeCredential(didCompleteWithAuthorization authorization: ASAuthorization) -> Observable<(credential: OAuthCredential, appleUserId: String)> {
+        Observable.create { [unowned self] observer in
             if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
-                guard let nonce = currentNonce else {
+                guard let nonce = self.currentNonce else {
                     print("Invalid state: A login callback was recieved, but no login request was sent.")
                     observer.onError(RxError.unknown)
                     return Disposables.create()
@@ -42,7 +49,7 @@ enum LoginService {
         }
     }
     @available(iOS 13, *)
-    static func startSignInWithAppleFlow() -> Observable<[ASAuthorizationAppleIDRequest]> {
+    func startSignInWithAppleFlow() -> Observable<[ASAuthorizationAppleIDRequest]> {
         let nonce = randomNonceString()
         currentNonce = nonce
         let appleIDProvider = ASAuthorizationAppleIDProvider()
@@ -53,7 +60,7 @@ enum LoginService {
     }
     
     @available(iOS 13, *)
-    static func startSignInWithFirebaseFlow(credential: OAuthCredential) -> Observable<Void> {
+    func startSignInWithFirebaseFlow(credential: OAuthCredential) -> Observable<Void> {
         Observable.create { observer in
             Auth.auth().signIn(with: credential) { (authDataResult, error) in
                 if let error = error {
@@ -70,7 +77,7 @@ enum LoginService {
         
     }
     @available(iOS 13, *)
-    static func signOut() -> Observable<Void> {
+    func signOut() -> Observable<Void> {
         Observable<Void>.create { observer -> Disposable in
             do {
                 try Auth.auth().signOut()
@@ -83,7 +90,7 @@ enum LoginService {
             return Disposables.create()
         }
     }
-    static private func randomNonceString(length: Int = 32) -> String {
+    private func randomNonceString(length: Int = 32) -> String {
       precondition(length > 0)
       let charset: [Character] =
         Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
@@ -118,7 +125,7 @@ enum LoginService {
     }
     
     @available(iOS 13, *)
-    static private func sha256(_ input: String) -> String {
+    private func sha256(_ input: String) -> String {
       let inputData = Data(input.utf8)
       let hashedData = SHA256.hash(data: inputData)
       let hashString = hashedData.compactMap {
