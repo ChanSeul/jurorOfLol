@@ -17,7 +17,7 @@
   홈 화면의 우측하단의 업로드 버튼을 누르면, 업로드화면이 나타납니다. 모든 항목이 입력되어야 업로드되며, 본인의 주장은 상단바에, 상대방의 주장은 하단바에 나타납니다.  
     
   ![IMG_0381](https://user-images.githubusercontent.com/37011809/164245840-9e4d926b-045f-4693-b99d-99b51fd6495a.PNG)
-## Architecture
+## 아키텍쳐
 ![빈 페이지-1](https://user-images.githubusercontent.com/37011809/174434081-1bcc7d24-65c2-4018-954f-b7e7391481eb.png)
 
 - MVVM
