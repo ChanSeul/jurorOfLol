@@ -31,5 +31,3 @@
   Navigation Logic을 ViewController로부터 분리하여 Viewcontroller들 사이의 의존성을 줄였습니다.
 ## 실행환경
 - iOS 13.0 이상
-## 기술적 어려움
-- FireBaseStore S
