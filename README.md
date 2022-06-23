@@ -28,7 +28,7 @@
   소스코드의 의존성을 저수준에서 고수준으로 향하도록 만들어 (Application -> Platform -> Domain), 고수준의 정책이 저수준의 잦은 변경사항에 영향을 받지 않도록 하였습니다. 
 - Coordinator Pattern
 
-  Navigation Logic을 ViewController로부터 분리하여 Viewcontroller들 사이의 의존성을 줄였습니다.
+  Navigation Logic을 ViewController로부터 분리하여 Viewcontroller들 사이의 의존성을 낮췄습니다.
 ## 실행환경
 - iOS 13.0 이상
 ## 주요 기술
